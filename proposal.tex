@@ -13,69 +13,69 @@
 
 \section{Motivation}
 
-Recent advances in memory technologies have seen the emergence of systems with
-terabytes of memory. Many current systems already have dozens or hundreds of
-gigabytes of memory. Moreover, non-volatile memory technologies, which have
-denser physical structures have made large memories more accessable. Thus, we
-conclude that systems with terabytes of memory will become more prevelent in the
-future.
-
-Among recent advances, HP has been working on a system which they call "The
-Machine", in which hundreds of cores have access to a multi-petabyte shared
-memory pool (https://www.labs.hpe.com/the-machine/the-machine-distribution). Meanwhile, Intel and Micro announced their 3D Xpoint
-non-volatile memory technology, which brings dense, fast, persistent memory into
-the consumer and industrial realms (http://www.intel.com/content/www/us/en/architecture-and-technology/3d-xpoint-unveiled-video.html).
+Recent advances in memory technologies are making it possible for machines with
+large amounts of memory to become commonplace. Many current systems already
+have dozens or hundreds of gigabytes of memory. These technology advances can
+enable systems with terabytes of memory in the not very distant future. For
+example, non-volatile memory technologies, which have denser physical
+structures than traditional DRAM are making such large memories available and
+more accessible \cite{xpoint}.
 
 Much research is currently being done to study how non-volatile and large
-memory systems would change system design. However, these studies encounter the
-simple difficulty that most researchers do not have the funds to access these
-sorts of systems for experimentation.
+memory systems would change system design. HP has been working on a system
+which it calls ``The Machine'', in which hundreds of cores have access to a
+multi-petabyte shared memory pool \cite{hp_machine}. Intel and
+Micron have announced their 3D Xpoint non-volatile memory technology, making
+dense, fast, persistent memory comercially available \cite{xpoint}.
 
-We note that there was a similar problem when large storage systems first became
-available \cite{david, exalt}. Typically, there are two alternatives in
-such a situation: trick the system into believing such hardware is available or
-use a simulation (e.g. via a virtual machine or specialized tool).
+However, studies of large-memory systems are often forced to use simulation or
+emulation to evaluate solutions because most researchers do not have access to
+these sorts of systems for experimentation \cite{quartz}. This often
+forces researchers to simplify models, incurring inaccuracy, or to use smaller
+benchmarks, which are less realistic. We note that there was a similar problem
+when large storage systems first became available \cite{david, exalt}.
 
-Currently, though, there are few good tools avaiable to systems researchers for
-understanding how systems interact with large memories. Running virtual machines
-with large memories is extremely slow and limits the scale of these experiments.
-Tricking the system into believing there is a large memory is more difficult
-than tricking the same system into believing there is a large disk because user
-programs have direct access to memory and tend to use more ad hoc in-memory
-structures.
-
-The ideal end-goal of this research is to find a general lightweight technique
-or tool for studying and designing large-memory systems.
+Currently, there are few good tools available to systems researchers for
+understanding how systems interact with large memories. The ideal end-goal of
+this research is to identify bottlenecks in managing large memories and find a
+general lightweight technique or tool for studying and designing operating
+systems capable of handling large memory while using systems currently
+available to researchers.
 
 \section{Proposal}
 
 This research will proceed in two phases. First, we will analyze and understand
-the existing memory management mechanisms in Linux. In particular, we will look
-at the data structures in use and the overhead of the various memory management
-mechanisms. This understanding will help us to understand where current memory
-management techniques are unscalable, which in turn will help us understand how
-to build either an emulation tool or simulation tool for studying large memory
-systems using more affordable common-sized-memory systems, such as a typical
-research would have access to.
+the existing memory management mechanisms in Linux, particularly the overhead
+of its data structures and operations. We will explore the limits of
+virtualization techniques with large guest memory and the ways in which the
+Linux kernel manages memory, exploring the scalability of Linux memory
+management. Specifically, we want to look at cases where the guest has many
+times more memory than the host. Part of this phase will involve experimentally
+exploring a variety of workloads with large memory footprints.
 
-In exploring the design space, we will explore the limits of virtualization
-techniques with regards to memory AND the ways in which the Linux kernel keeps
-discovers and manages memory. Exploring the scalability of Linux memory
-management allows us to see how well we can cause the Linux kernel to trick
-itself into believing there is a large amount of memory. This is important
-because we may find that this is possible but not efficient.
+In the second phase of the research our goal is to build a tool for studying
+large-memory systems using more affordable common-sized-memory systems, such as
+those to which a typical researcher would have access. Specifically, we will
+target operating systems research. We will likely start by implementing a
+less-general tool which targets one simple application or a class of
+applications. Then, we will make it more general as time permits. The design
+choices in our second phase will be heavily influenced by what we find in the
+first phase when we study the overhead of large memory systems, so at present
+our notions of what we will do are rather vague.
 
-The second phase of the research will be to develop this general tool. We will
-likely start by implementing a less-general tool which targets low-hanging
-fruit. Then, we will make it more general as time permits. This second phase is
-heavily influenced by what we find in the first phase, so it present our notions
-of what we will do are rather shadowy.
 
-\section{Evaluation of Solution}
+\section{Evaluation}
 
-In the course of our analysis phase, we will identify a number of workloads
-targetted at large-memory systems. We can use these workloads again to evaluate
-our solution.
+In the course of our analysis phase, we will identify a number of workloads targeted at large-memory systems. We can use these workloads again to evaluate our solution. Some workloads that we are currently considering are GUPS and memcached.
+
+
+\section{Required Resources}
+
+We require a machine with enough storage space and memory to develop and test large-memory system emulation techniques.
+
+We will also need access to benchmarks such as GUPS and memcached for our experiments and evaluation.
+
+Finally, we request a large vat of M\&M’s or Snickers, and a supply of free food for three persons for around three months as a catalyst for our research.
 
 \bibliography{references}{}
 \bibliographystyle{plain}
