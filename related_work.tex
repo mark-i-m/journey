@@ -11,6 +11,110 @@
 
 \maketitle
 
+The emergence of new technology has in the past often required operating
+systems to change. Traditionally, OS researchers and developers benchmark and
+test their solutions in new environments to demonstrate their efficacy before
+using them in real systems. However, researchers do not always have access to
+new technology for practical reasons; for example, large memory systems are
+still too expensive for most research budgets. This is not the first time that
+researchers have been forced to study systems in environments they do not have
+access to. This section examines past approaches to studying these systems and
+motivates the need for our work.
+
+The emergence of the internet required businesses to buy expensive machines to
+keep up with demand for their services, but systems researchers did not have
+access to these machines. Alameldeen et al. describe how they simulate a
+multi-million dollar server using a \$2000 workstation. To do this, they go
+through several rounds of scaling down, optimizing, changing, and tuning both
+the benchmarks and systems they test. For example, they scale down a workload
+to fit in the 1GB memory of the machine they use and increase the number of
+threads to improve parallelism (TODO: cite). This methodology may be accurate,
+but it requires modifying the benchmarks, which is error prone and time
+consuming; it can be extremely difficult to validate changes to a benchmark. In
+our work, we seek to avoid changes to the experimental workloads including
+changes to code or scale. 
+
+Likewise, the Quartz emulator studies the behaviour of applications on
+Non-volatile Memory (NVM) while actually running on top of DRAM. It uses
+existing hardware capabilities to emulate the higher latency and lower
+bandwidth of most NVM technologies. While Quartz does not address the fact that
+the actual memory available to the applications on NVM might be orders of
+magnitude higher than on DRAM, it demonstrates that new technologies may be
+emulated using existing technology (TODO: cite [2]). 
+
+The Simics simulator uses demand paging for simulated environments, which means
+that memory is only allocated when it is used. As long as the working set of
+the target system fits in the host memory, performance will be tolerable.
+However, in our work, we wish to study OS behavior under workloads that
+actually use all available memory. Thus, the usefulness of demand paging is
+greatly reduced. For these workloads, the performance of simulators like Simics
+tends to be impractical (TODO: cite [3]). We do not explore simulation further
+because it can be orders of magnitude slower than native execution, making it
+infeasible for studying large workloads or systems (TODO cite: \$2M paper).
+
+A similar problem was encountered by researchers studying both large storage
+drives and large distributed storage systems. David is a system that allows
+storage and big data researchers to run large benchmarks requiring terabytes of
+storage using off the shelf storage devices (which at that time were too
+small). David creates a compressed version of the file system by physically
+storing only metadata and discarding the contents of files. Reads to the disk
+causes David to generate data on the fly. This decision choice is based on the
+observation that most benchmarking frameworks do not care about the actual
+content of the files, and that most of the storage capacity of a drive tends to
+be data rather than metadata (TODO: cite [1]). The Exalt system uses a similar
+methodology for large-scale distributed storage systems (TODO: cite [4]). This
+methodology provides a promising direction for large-memory system studies. One
+may consider ignoring the contents of a process’s heap and only storing kernel
+data structures and a process’s code and stack segments. However, generating
+heap contents on the fly is more difficult than generating disk contents
+because of the common use of custom data structures. Moreover, on Linux, the
+kernel data structures for 1TB of memory may also exceed the size of physical
+memory on present systems[3].
+
+A virtualized environment can be used to provide a guest system with more
+memory than is physically available to the host. A study of the limits of the
+KVM hypervisor found that there is no fundamental limit to the size of guest
+physical memory other than the hardware address width. However, currently, a
+Linux host running KVM will require the guest memory to be backed by host
+physical memory or host swap space (TODO: cite IBM KVM).  This means that when
+the virtual machine uses the whole amount of memory allocated to it, the host
+can swap pages to disk. The resulting poor performance can cause inaccurate
+performance measurements when running benchmarks.
+
+Prefetching pages from swap space can offer a way to mitigate the overhead of
+memory overcommitment. When there is significant memory pressure, even pages
+which are likely to be accessed soon are swapped out to disk. They are faulted
+back into memory when accessed, resulting in significant performance cost.
+Charm++ uses a programming model where computations can be scheduled by the
+language runtime. A designated thread can prefetch pages required by a
+computation, averting page faults. Although this approach is effective in
+avoiding overhead, it requires applications to be written with a particular
+programming language and so is not applicable to most benchmarks without
+changing them (TODO: cite Charm++ paper).
+
+Gupta et al. built an emulator for high speed networks using a technique called
+time dilation, which slows down the OS clock to make it appear that external
+events are occurring faster. This allows the system to emulate network links
+with speeds that are currently not available. The implementation is based on
+the VMs and Xen hypervisor; Xen delivers the timer interrupts to the guest at a
+lower rate than hardware hence  slowing down the guest’s clock (TODO: cite). We
+may use a similar approach to slow down system time  while paging in and out
+large portions of memory. This will allow us to make the system believe that it
+is reading data from the memory while actually most of that data is being read
+from the disk.
+
+Finally, there have been studies which look at the performance overheads
+associated with current implementations of virtual memory and suggest
+mechanisms to mitigate them. RadixVM tries to overcome performance issues in
+highly concurrent workloads due to serialization of memory management
+operations on kernel data structures (TODO: cite RadixVM). This work
+demonstrates that many parts of existing memory management schemes are not
+scalable to larger systems. Similarly, in our work, we wish to examine
+scalability limitations of memory management in the Linux kernel. Other studies
+have suggested that \texttt{struct page}, \texttt{struct vm\_area\_struct}, and page tables
+tend to comprise a large portion of memory management overhead (TODO: cite
+Simics article).
+
 \bibliography{references}{}
 \bibliographystyle{plain}
 
