@@ -5,7 +5,7 @@ HEADERS = $(wildcard *.h)
 all: $(TARGETS)
 
 $(TARGETS) : % : %.c $(HEADERS)
-	gcc -o $@ $<
+	gcc -std=gnu99 -o $@ $<
 
 clean:
 	rm -f $(TARGETS)
