@@ -27,6 +27,8 @@ struct Next {
     void *address; // the address for the start of the region
     size_t size; // bytes
     int permissions; // usable by the given operation
+
+    void print();
 };
 
 class PatternGenerator {
@@ -48,52 +50,12 @@ class PatternGenerator {
 // Define a bunch of common patterns
 
 // mmap a bunch of 16KB regions that are contiguous
-PatternGenerator get_continuous_pattern() {
-    PatternPart only;
-    only.size = 4; // 16KB
-    only.location = 4;
-    only.permissions = 7;
-    only.operation = OP_MMAP;
-
-    std::vector<PatternPart> pattern;
-    pattern.push_back(only);
-
-    return PatternGenerator(pattern);
-}
+PatternGenerator get_continuous_pattern();
 
 // mmap a bunch of large contiguous pieces of memory
-PatternGenerator get_large_continuous_pattern() {
-    PatternPart only;
-    only.size = 256; // 1MB
-    only.location = 256;
-    only.permissions = 7;
-    only.operation = OP_MMAP;
-
-    std::vector<PatternPart> pattern;
-    pattern.push_back(only);
-
-    return PatternGenerator(pattern);
-}
+PatternGenerator get_large_continuous_pattern();
 
 // mmap some space, then change permissions on part of it
-PatternGenerator get_frag_prot_pattern() {
-    PatternPart first;
-    first.size = 8; // 32KB
-    first.location = 4;
-    first.permissions = 7;
-    first.operation = OP_MMAP;
-
-    PatternPart second;
-    second.size = 4; // 16KB
-    second.location = 4;
-    second.permissions = 5;
-    second.operation = OP_MPROT;
-
-    std::vector<PatternPart> pattern;
-    pattern.push_back(first);
-    pattern.push_back(second);
-
-    return PatternGenerator(pattern);
-}
+PatternGenerator get_frag_prot_pattern();
 
 #endif

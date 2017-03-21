@@ -37,3 +37,7 @@
 *.log
 *.blg
 *.pdf
+
+# vim
+*.swp
+*.swo
