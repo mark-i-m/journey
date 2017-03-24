@@ -19,7 +19,6 @@ unsigned long getinfo(const char *, const char *);
 
 unsigned long getinfo(const char *file, const char *name) {
 	static int local_n;
-	char namebuf[16];
 	int found = 0;
 	char *head;
 	char *tail;
@@ -49,14 +48,8 @@ unsigned long getinfo(const char *file, const char *name) {
 		*tail = '\0';
 		if (!strcmp(name, (const char *)head))
 			found = 1;
-		if (strlen(head) >= sizeof(namebuf)) {
-			head = tail + 1;
-			goto nextline;
-		}
-		strcpy(namebuf, head);
 		head = tail + 1;
 		meminfo_value = strtoul(head, &tail, 10);
-	nextline:
 		tail = strchr(head, '\n');
 		if (!tail)
 			break;
@@ -121,7 +114,6 @@ int main(int argc, char **argv)
 	printf("Diff is %lu kB\n", after);
 
 	printf("Growth is %lu kB\n", before - after);
-	printf("hello from HelloWorld!\n");
 
 	return 0;
 }
