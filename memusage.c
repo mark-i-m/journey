@@ -8,31 +8,35 @@
 #include <sys/mman.h>
 
 #define MEMINFO_FILE "/proc/meminfo"
+#define SLABINFO_FILE "/proc/slabinfo"
+
+#define VMA_STRUCT_OBJ_SIZE 200
 
 static char buf[2048];
-static int meminfo_fd = -1;
+static int fd = -1;
 unsigned long meminfo_value;
 
 unsigned long meminfo(const char *);
 unsigned long statusinfo(const char *);
+unsigned long slabinfo(const char *);
 unsigned long getinfo(const char *, const char *);
 
 unsigned long getinfo(const char *file, const char *name) {
-	static int local_n;
+	int local_n;
 	int found = 0;
 	char *head;
 	char *tail;
 
-	meminfo_fd = open(file, O_RDONLY);
+	fd = open(file, O_RDONLY);
 
-	if (meminfo_fd == -1) {
+	if (fd == -1) {
 		fputs("Couldn't open meminfo file\n", stderr);
 		return 1UL;
 	}
 
-	lseek(meminfo_fd, 0L, SEEK_SET);
+	lseek(fd, 0L, SEEK_SET);
 
-	if ((local_n = read(meminfo_fd, buf, sizeof buf - 1)) < 0) {
+	if ((local_n = read(fd, buf, sizeof buf - 1)) < 0) {
 		fputs("Couldn't read from meminfo file\n", stderr);
 		return 2UL;
 	}
@@ -58,7 +62,7 @@ unsigned long getinfo(const char *file, const char *name) {
 		head = tail + 1;
 	}
 
-	if (close(meminfo_fd)) {
+	if (close(fd)) {
 		fputs("Couldn't close meminfo file\n", stderr);
 		return 3UL;
 	}
@@ -71,6 +75,37 @@ unsigned long meminfo(const char *name) {
 
 unsigned long statusinfo(const char *name) {
 	return getinfo("/proc/self/status", "VmRSS");
+}
+
+unsigned long slabinfo(const char *name) {
+	int local_n;
+	char *head;
+	unsigned long active_objs;
+
+	fd = open(SLABINFO_FILE, O_RDONLY);
+	if (fd == -1) {
+		fputs("Couldn't open slabinfo file\n", stderr);
+		return 1UL;
+	}
+	lseek(fd, 0L, SEEK_SET);
+	do {
+		if ((local_n = read(fd, buf, sizeof buf - 1)) < 0) {
+			fputs("Couldn't read from slabinfo file\n", stderr);
+			return 2UL;
+		}
+		buf[local_n] = '\0';
+		head = strstr(buf, name);
+	} while (!head);
+	strtok(head, " ");
+	head = strtok(NULL, " ");
+	if (close(fd)) {
+		fputs("Couldn't close slabinfo file\n", stderr);
+		return 3UL;
+	}
+
+	active_objs = strtoul(head, NULL, 10);
+	//return active_objs * VMA_STRUCT_OBJ_SIZE;
+	return active_objs;
 }
 
 int main(int argc, char **argv)
@@ -115,7 +150,6 @@ int main(int argc, char **argv)
 	pmem = statusinfo("VmRSS");
 	after = tmem - fmem - pmem;
 	printf("%lu\n", after);
-
 
 	return 0;
 }
