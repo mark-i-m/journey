@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+from sys import argv
 
-DATA = 'output/many_mmap.out'
+DATA = argv[1]
+SCALE = argv[2] if len(argv) == 3 else "log"
 
 data = []
 
@@ -18,7 +20,7 @@ with open(DATA, 'r') as f:
 line_pipe, = plt.plot(data)
 
 #plt.xscale("log", basex = 2)
-plt.yscale("log")
+plt.yscale(SCALE)
 
 #plt.xlim(0, 512+32)
 #plt.ylim(0, 600)

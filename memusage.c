@@ -39,7 +39,7 @@ unsigned long getinfo(const char *file, const char *name) {
 
 	buf[local_n] = '\0';
 
-	head = buf;
+	head = strstr(buf, name);
 
 	for (;;) {
 		tail = strchr(head, ':');
@@ -70,11 +70,7 @@ unsigned long meminfo(const char *name) {
 }
 
 unsigned long statusinfo(const char *name) {
-	char file[30] = { '\0' };
-	strcat(file, "/proc/");
-	sprintf(strchr(file, '\0'), "%d", getpid());
-	strcat(file, "/status");
-	return getinfo(file, "VmRSS");
+	return getinfo("/proc/self/status", "VmRSS");
 }
 
 int main(int argc, char **argv)
@@ -95,7 +91,7 @@ int main(int argc, char **argv)
 	fmem = meminfo("MemFree");
 	pmem = statusinfo("VmRSS");
 	before = tmem - fmem - pmem;
-	printf("Diff is %lu kB\n", before);
+	printf("%lu\n", before);
 
 	for (i = 0; i < amt; i++) {
 		addr = (char *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
@@ -103,17 +99,23 @@ int main(int argc, char **argv)
 			fputs("mmap failed!\n", stderr);
 			return -1;
 		} else {
-			addr[0] = 'A';
+	//		addr[0] = 'A';
 		}
+
+	tmem = meminfo("MemTotal");
+	fmem = meminfo("MemFree");
+	pmem = statusinfo("VmRSS");
+	after = tmem - fmem - pmem;
+	printf("%lu\n", after);
+
 	}
 
 	tmem = meminfo("MemTotal");
 	fmem = meminfo("MemFree");
 	pmem = statusinfo("VmRSS");
 	after = tmem - fmem - pmem;
-	printf("Diff is %lu kB\n", after);
+	printf("%lu\n", after);
 
-	printf("Growth is %lu kB\n", before - after);
 
 	return 0;
 }
