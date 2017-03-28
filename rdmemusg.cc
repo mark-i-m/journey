@@ -101,3 +101,13 @@ unsigned long slabinfo(const char *name) {
 	//return active_objs * VMA_STRUCT_OBJ_SIZE;
 	return active_objs;
 }
+
+unsigned long getkernelmem() {
+	unsigned long tmem, fmem, pmem;
+
+	tmem = meminfo("MemTotal");
+	fmem = meminfo("MemFree");
+	pmem = statusinfo("VmRSS");
+
+	return tmem - fmem - pmem;
+}
