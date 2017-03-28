@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "pattern.h"
 #include "rdmemusg.h"
 

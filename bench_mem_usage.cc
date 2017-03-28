@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+
 #include "rdmemusg.h"
 
 int main(int argc, char **argv)
