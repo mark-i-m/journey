@@ -9,6 +9,4 @@ unsigned long meminfo(const char *name);
 unsigned long statusinfo(const char *name);
 unsigned long slabinfo(const char *name);
 
-unsigned long getkernelmem();
-
 #endif
