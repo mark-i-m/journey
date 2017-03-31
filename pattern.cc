@@ -55,7 +55,7 @@ int PatternGenerator::get_prot() {
 }
 
 // mmap a bunch of 16KB regions that are contiguous
-PatternGenerator get_continuous_pattern() {
+PatternGenerator get_mmap_16k_cont_rwx() {
     PatternPart only;
     only.size = 4; // 16KB
     only.location = 4;
@@ -69,7 +69,7 @@ PatternGenerator get_continuous_pattern() {
 }
 
 // mmap a bunch of large contiguous pieces of memory
-PatternGenerator get_large_continuous_pattern() {
+PatternGenerator get_mmap_1M_cont_rwx() {
     PatternPart only;
     only.size = 256; // 1MB
     only.location = 256;
