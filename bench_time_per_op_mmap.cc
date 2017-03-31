@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     set_cpu(0);
-    PatternGenerator pg = get_continuous_pattern();
+    PatternGenerator pg = get_mmap_16k_cont_rwx();
 
     Next cur;
     size_t i;
