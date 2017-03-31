@@ -1,12 +1,15 @@
 #include <iostream>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <string.h>
+#include <errno.h>
 
 #include "pattern.h"
 #include "rdmemusg.h"
-
-#include <sys/mman.h>
+#include "pinning.h"
 
 int main(int argc, char **argv) {
+    set_cpu(0);
 
     if (argc < 2) {
         std::cout << "Usage: ./pattern number_order" << std::endl;
@@ -29,13 +32,13 @@ int main(int argc, char **argv) {
         if (val.operation == OP_MMAP) {
             addr = (char *)mmap(val.address, val.size, val.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
             if (addr == MAP_FAILED) {
-                std::cerr << "mmap failed: " << addr << std::endl;
+                std::cerr << "mmap failed: " << strerror(errno) << std::endl;
                 return -1;
             }
         } else if (val.operation == OP_MPROT) {
             int j = mprotect(val.address, val.size, val.permissions);
             if (j) {
-                std::cerr << "mprotect failed: " << j << std::endl;
+                std::cerr << "mprotect failed: " << strerror(errno) << std::endl;
                 return -1;
             }
         }

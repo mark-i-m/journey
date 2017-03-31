@@ -1,6 +1,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <string.h>
+#include <errno.h>
 
 #include "pattern.h"
 #include "rdtsc.h"
@@ -31,7 +33,7 @@ int main(int argc, char* argv[]) {
         if (cur.operation == OP_MMAP) {  // must be
             addr = (char *)mmap(cur.address, cur.size, cur.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
             if (addr == MAP_FAILED) {
-                std::cerr << "mmap failed: " << addr << std::endl;
+                std::cerr << "mmap failed: " << strerror(errno) << std::endl;
                 exit(1);
             }
         }

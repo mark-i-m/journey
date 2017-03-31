@@ -1,12 +1,16 @@
 #include <iostream>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <string.h>
+#include <errno.h>
 
 #include "rdmemusg.h"
 #include "pattern.h"
+#include "pinning.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
+    set_cpu(0);
+
 	if (argc < 1) {
         std::cout << "Usage: ./memusage number_order" << std::endl;
 		return -1;
@@ -26,7 +30,7 @@ int main(int argc, char **argv)
 
         char *addr = (char *)mmap(next.address, next.size, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
         if (addr == MAP_FAILED) {
-            std::cerr << "mmap failed: " << addr << std::endl;
+            std::cerr << "mmap failed: " << strerror(errno) << std::endl;
             return -1;
         } else {
            	addr[0] = 'A';
