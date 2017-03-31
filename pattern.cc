@@ -98,7 +98,7 @@ PatternGenerator get_mmap_1M_cont_rwx() {
 }
 
 // mmap a bunch of 16KB regions with a stride of 32KB
-PatternGenerator get_mmap_16k_stride_16k_rwx() {
+PatternGenerator get_mmap_16k_stride_32k_rwx() {
     PatternPart only;
     only.size = 4; // 16KB
     only.location = 8;
