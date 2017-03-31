@@ -54,6 +54,21 @@ int PatternGenerator::get_prot() {
     }
 }
 
+// mmap a bunch of pages that are contiguous
+PatternGenerator get_mmap_4k_cont_rwx() {
+    PatternPart only;
+    only.size = 1; // 4KB
+    only.location = 1;
+    only.permissions = 7;
+    only.operation = OP_MMAP;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(only);
+
+    return PatternGenerator(pattern);
+}
+
+
 // mmap a bunch of 16KB regions that are contiguous
 PatternGenerator get_mmap_16k_cont_rwx() {
     PatternPart only;
@@ -81,6 +96,43 @@ PatternGenerator get_mmap_1M_cont_rwx() {
 
     return PatternGenerator(pattern);
 }
+
+// mmap a bunch of 16KB regions with a stride of 32KB
+PatternGenerator get_mmap_16k_stride_16k_rwx() {
+    PatternPart only;
+    only.size = 4; // 16KB
+    only.location = 8;
+    only.permissions = 7;
+    only.operation = OP_MMAP;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(only);
+
+    return PatternGenerator(pattern);
+}
+
+// mmap a bunch of 4KB pages with a stride of 8KB
+// Remap the 4KB pages to the unmapped spaces
+PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k() {
+    PatternPart first;
+    first.size = 1; // 4KB
+    first.location = 1;
+    first.permissions = 7;
+    first.operation = OP_MMAP;
+
+    PatternPart second;
+    second.size = 1; // 4KB
+    second.location = 1;
+    second.permissions = 7;
+    second.operation = OP_MREMAP;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(first);
+    pattern.push_back(second);
+
+    return PatternGenerator(pattern);
+}
+
 
 // mmap some space, then change permissions on part of it
 PatternGenerator get_frag_prot_pattern() {
