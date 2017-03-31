@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
     size_t amt = 1 << atoi(argv[1]);
 
-    PatternGenerator p = get_frag_prot_pattern();
+    PatternGenerator p = get_mmap_16k_cont_rwx_prot_4k_rdonly();
     Next val;
 
     printf("%lu\n", getkernelmem());
