@@ -10,6 +10,7 @@
 #define OP_MADV 102
 #define OP_MLOCK 103
 #define OP_MREMAP 104
+#define OP_MUNMAP 105
 
 #define STARTING_POINT ((void*)0x40000000) // the first address used for calculation
 
@@ -54,9 +55,10 @@ PatternGenerator get_mmap_1M_cont_rwx();
 PatternGenerator get_mmap_16k_stride_32k_rwx();
 PatternGenerator get_mmap_4k_cont_rwx_prot_4k_rdonly();
 PatternGenerator get_mmap_16k_cont_rwx_prot_4k_rdonly();
+PatternGenerator get_mmap_16k_remap_4k();
+PatternGenerator get_mmap_16k_remap_4k();
 PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k();
-
-// mmap some space, then change permissions on part of it
-PatternGenerator get_frag_prot_pattern();
+PatternGenerator get_mmap_16k_cont_munmap_8k();
+PatternGenerator get_mmap_4k_remap_8k_unmap_4k();
 
 #endif

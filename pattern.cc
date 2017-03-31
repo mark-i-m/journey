@@ -153,6 +153,50 @@ PatternGenerator get_mmap_16k_cont_rwx_prot_4k_rdonly() {
     return PatternGenerator(pattern);
 }
 
+// mmap a bunch of 16KB pages
+// Resize them to 4KB pages
+PatternGenerator get_mmap_16k_remap_4k() {
+    PatternPart first;
+    first.size = 4; // 16KB
+    first.location = 1;
+    first.permissions = 7;
+    first.operation = OP_MMAP;
+
+    PatternPart second;
+    second.size = 1; // 4KB
+    second.location = 0;
+    second.permissions = 7;
+    second.operation = OP_MREMAP;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(first);
+    pattern.push_back(second);
+
+    return PatternGenerator(pattern);
+}
+
+// mmap a bunch of 4KB pages
+// Resize them to 16KB pages
+PatternGenerator get_mmap_16k_remap_4k() {
+    PatternPart first;
+    first.size = 1; // 4KB
+    first.location = 4;
+    first.permissions = 7;
+    first.operation = OP_MMAP;
+
+    PatternPart second;
+    second.size = 4; // 16KB
+    second.location = 0;
+    second.permissions = 7;
+    second.operation = OP_MREMAP;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(first);
+    pattern.push_back(second);
+
+    return PatternGenerator(pattern);
+}
+
 // mmap a bunch of 4KB pages with a stride of 8KB
 // Remap the 4KB pages to the unmapped spaces
 PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k() {
@@ -175,20 +219,49 @@ PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k() {
     return PatternGenerator(pattern);
 }
 
-
-// mmap some space, then change permissions on part of it
-PatternGenerator get_frag_prot_pattern() {
+// mmap a bunch of 16KB pages contiguosly
+// Unmap 8KB pages in the middle of these 16KB pages
+PatternGenerator get_mmap_16k_cont_munmap_8k() {
     PatternPart first;
-    first.size = 8; // 32KB
-    first.location = 4;
+    first.size = 4; // 16KB
+    first.location = 3;
     first.permissions = 7;
     first.operation = OP_MMAP;
 
     PatternPart second;
-    second.size = 4; // 16KB
-    second.location = 4;
-    second.permissions = 5;
-    second.operation = OP_MPROT;
+    second.size = 2; // 4KB
+    second.location = 1;
+    second.permissions = 7;
+    second.operation = OP_MUNMAP;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(first);
+    pattern.push_back(second);
+
+    return PatternGenerator(pattern);
+}
+
+// mmap a bunch of 4KB pages contiguously
+// Resize them to 8KB pages
+// Unmap the initial 4KB
+PatternGenerator get_mmap_4k_remap_8k_unmap_4k() {
+    PatternPart first;
+    first.size = 1; // 4KB
+    first.location = 2;
+    first.permissions = 7;
+    first.operation = OP_MMAP;
+
+    PatternPart second;
+    second.size = 2; // 8KB
+    second.location = 0;
+    second.permissions = 7;
+    second.operation = OP_MREMAP;
+
+    PatternPart third;
+    third.size = 1; // 4KB
+    third.location = 0;
+    third.permissions = 7;
+    third.operation = OP_MUNMAP;
 
     std::vector<PatternPart> pattern;
     pattern.push_back(first);
