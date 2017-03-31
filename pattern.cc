@@ -111,6 +111,48 @@ PatternGenerator get_mmap_16k_stride_16k_rwx() {
     return PatternGenerator(pattern);
 }
 
+// mmap a bunch of 4KB pages contiguously and change their permissions
+PatternGenerator get_mmap_4k_cont_rwx_prot_4k_rdonly() {
+    PatternPart first;
+    first.size = 1; // 4KB
+    first.location = 1;
+    first.permissions = 7;
+    first.operation = OP_MMAP;
+
+    PatternPart second;
+    second.size = 1; // 4KB
+    second.location = 0;
+    second.permissions = 4;
+    second.operation = OP_MPROT;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(first);
+    pattern.push_back(second);
+
+    return PatternGenerator(pattern);
+}
+
+// mmap a bunch of 16KB pages contiguosly and change permissions of initial 4KB
+PatternGenerator get_mmap_16k_cont_rwx_prot_4k_rdonly() {
+    PatternPart first;
+    first.size = 4; // 4KB
+    first.location = 4;
+    first.permissions = 7;
+    first.operation = OP_MMAP;
+
+    PatternPart second;
+    second.size = 1; // 4KB
+    second.location = 0;
+    second.permissions = 4;
+    second.operation = OP_MPROT;
+
+    std::vector<PatternPart> pattern;
+    pattern.push_back(first);
+    pattern.push_back(second);
+
+    return PatternGenerator(pattern);
+}
+
 // mmap a bunch of 4KB pages with a stride of 8KB
 // Remap the 4KB pages to the unmapped spaces
 PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k() {
