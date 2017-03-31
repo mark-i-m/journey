@@ -177,7 +177,7 @@ PatternGenerator get_mmap_16k_remap_4k() {
 
 // mmap a bunch of 4KB pages
 // Resize them to 16KB pages
-PatternGenerator get_mmap_16k_remap_4k() {
+PatternGenerator get_mmap_4k_remap_16k() {
     PatternPart first;
     first.size = 1; // 4KB
     first.location = 4;
