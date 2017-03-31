@@ -7,13 +7,12 @@
 
 int main(int argc, char **argv)
 {
-	if (argc < 3) {
-		printf("Usage: ./memusage size_order number_order\n");
+	if (argc < 2) {
+		printf("Usage: ./memusage number_order\n");
 		return -1;
 	}
 
-	size_t size = 1 << atoi(argv[1]);
-	size_t amt = 1 << atoi(argv[2]);
+	size_t amt = 1 << atoi(argv[1]);
 
     PatternGenerator pg = get_mmap_16k_cont_rwx();
     Next next;
