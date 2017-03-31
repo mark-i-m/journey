@@ -48,12 +48,13 @@ class PatternGenerator {
 };
 
 // Define a bunch of common patterns
-
-// mmap a bunch of 16KB regions that are contiguous
-PatternGenerator get_continuous_pattern();
-
-// mmap a bunch of large contiguous pieces of memory
-PatternGenerator get_large_continuous_pattern();
+PatternGenerator get_mmap_4k_cont_rwx();
+PatternGenerator get_mmap_16k_cont_rwx();
+PatternGenerator get_mmap_1M_cont_rwx();
+PatternGenerator get_mmap_16k_stride_32k_rwx();
+PatternGenerator get_mmap_4k_cont_rwx_prot_4k_rdonly();
+PatternGenerator get_mmap_16k_cont_rwx_prot_4k_rdonly();
+PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k();
 
 // mmap some space, then change permissions on part of it
 PatternGenerator get_frag_prot_pattern();
