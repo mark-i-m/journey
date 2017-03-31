@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <sys/mman.h>
 
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     char* addr;
 
     if (argc < 2) {
-        printf("Usage: ./pattern total_ops_order\n");
+        std::cout << "Usage: ./pattern total_ops_order" << std::endl;
         exit(1);
     }
 
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
         if (cur.operation == OP_MMAP) {  // must be
             addr = (char *)mmap(cur.address, cur.size, cur.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
             if (addr == MAP_FAILED) {
-                printf("mmap failed\n");
+                std::cerr << "mmap failed: " << addr << std::endl;
                 exit(1);
             }
         }
@@ -42,7 +42,8 @@ int main(int argc, char* argv[]) {
     unsigned long long interval = end - start;
     unsigned long long nano_secs = (double) interval / ticks_per_nano;
 
-    printf("nsec/op = %llu\n", nano_secs / tot_ops);
+    // nsec per operation
+    std::cout <<  nano_secs / tot_ops << std::endl;
 
     return 0;
 

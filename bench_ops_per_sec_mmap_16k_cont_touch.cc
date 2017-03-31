@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <sys/mman.h>
 
@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     char* addr;
 
     if (argc < 2) {
-        printf("Usage: ./pattern total_time_sec\n");
+        std::cout << "Usage: ./pattern total_time_sec" << std::endl;
         exit(1);
     }
 
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
         if (cur.operation == OP_MMAP) {  // must be
             addr = (char *)mmap(cur.address, cur.size, cur.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
             if (addr == MAP_FAILED) {
-                printf("mmap failed\n");
+                std::cerr << "mmap failed: " << addr << std::endl;
                 exit(1);
             }
         }
@@ -44,7 +44,8 @@ int main(int argc, char* argv[]) {
         addr[0] = 'X'; // touch
     }
 
-    printf("operations/sec = %d\n", ops_done / time_to_run);
+    // operations per second
+    std::cout <<  ops_done / time_to_run << std::endl;
 
     return 0;
 

@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 
 #include "pattern.h"
@@ -9,7 +9,7 @@
 int main(int argc, char **argv) {
 
     if (argc < 2) {
-        printf("Usage: ./pattern number_order\n");
+        std::cout << "Usage: ./pattern number_order" << std::endl;
         return -1;
     }
 
@@ -18,7 +18,9 @@ int main(int argc, char **argv) {
     PatternGenerator p = get_mmap_16k_cont_rwx_prot_4k_rdonly();
     Next val;
 
-    printf("%lu\n", getkernelmem());
+    std::cout << getkernelmem() << " " 
+              << slabinfo("vm_area_struct") << " " 
+              << meminfo("PageTables") << std::endl;
 
     for (size_t i = 0; i < amt; i++) {
         char *addr;
@@ -27,17 +29,19 @@ int main(int argc, char **argv) {
         if (val.operation == OP_MMAP) {
             addr = (char *)mmap(val.address, val.size, val.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
             if (addr == MAP_FAILED) {
-                fputs("mmap failed!\n", stderr);
+                std::cerr << "mmap failed: " << addr << std::endl;
                 return -1;
             }
         } else if (val.operation == OP_MPROT) {
             int j = mprotect(val.address, val.size, val.permissions);
             if (j) {
-                fputs("mprotect failed!\n", stderr);
+                std::cerr << "mprotect failed: " << j << std::endl;
                 return -1;
             }
         }
 
-        printf("%lu\n", getkernelmem());
+        std::cout << getkernelmem() << " " 
+                  << slabinfo("vm_area_struct") << " " 
+                  << meminfo("PageTables") << std::endl;
     }
 }

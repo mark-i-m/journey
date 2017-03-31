@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <sys/mman.h>
 
@@ -8,7 +8,7 @@
 int main(int argc, char **argv)
 {
 	if (argc < 1) {
-		printf("Usage: ./memusage number_order\n");
+        std::cout << "Usage: ./memusage number_order" << std::endl;
 		return -1;
 	}
 
@@ -17,19 +17,23 @@ int main(int argc, char **argv)
     PatternGenerator pg = get_mmap_16k_cont_rwx();
     Next next;
 
-	printf("%lu %lu %lu\n", getkernelmem(), slabinfo("vm_area_struct"), meminfo("PageTables"));
+    std::cout << getkernelmem() << " " 
+              << slabinfo("vm_area_struct") << " " 
+              << meminfo("PageTables") << std::endl;
 
     for (size_t i = 0; i < amt; i++) {
         next = pg.next();
 
         char *addr = (char *)mmap(next.address, next.size, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
         if (addr == MAP_FAILED) {
-            fputs("mmap failed!\n", stderr);
+            std::cerr << "mmap failed: " << addr << std::endl;
             return -1;
         } else {
            	addr[0] = 'A';
         }
 
-        printf("%lu %lu %lu\n", getkernelmem(), slabinfo("vm_area_struct"), meminfo("PageTables"));
+        std::cout << getkernelmem() << " " 
+                  << slabinfo("vm_area_struct") << " " 
+                  << meminfo("PageTables") << std::endl;
     }
 }

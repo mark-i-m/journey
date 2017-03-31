@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <sys/mman.h>
 
@@ -7,13 +7,19 @@
 int main(int argc, char **argv)
 {
 	if (argc < 2) {
-		printf("Usage: ./memusage number_order\n");
+        std::cout << "Usage: ./memusage number_order" << std::endl;
 		return -1;
 	}
 
 	size_t amt = 1 << atoi(argv[1]);
 
+    std::cout << getkernelmem() << " " 
+              << slabinfo("vm_area_struct") << " " 
+              << meminfo("PageTables") << std::endl;
+
 	for (int i = 0; i < amt; i++) {
-		printf("%lu %lu %lu\n", getkernelmem(), slabinfo("vm_area_struct"), meminfo("PageTables"));
+        std::cout << getkernelmem() << " " 
+                  << slabinfo("vm_area_struct") << " " 
+                  << meminfo("PageTables") << std::endl;
 	}
 }
