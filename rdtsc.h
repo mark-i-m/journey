@@ -12,6 +12,7 @@ static __inline__ unsigned long long rdtsc(void)
 }
 
 double get_ticks_per_nano();
+void print_interval(unsigned long long, unsigned long long, double);
   
 
 

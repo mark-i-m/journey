@@ -1,4 +1,5 @@
 #include "rdtsc.h"
+#include <stdio.h>
 
 
 double get_ticks_per_nano() {
@@ -14,4 +15,12 @@ double get_ticks_per_nano() {
    double ticks_per_nano = (double) total_ticks / (double) interval;
 }
 
+void print_interval(unsigned long long start, unsigned long long end, 
+        double ticks_per_nano) {
+
+    unsigned long long interval = end - start;
+    unsigned long long nano_secs = (double) interval / ticks_per_nano;
+    printf("nsecs/op %llu\n", nano_secs);
+
+}
 
