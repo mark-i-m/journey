@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 
 	size_t amt = 1 << atoi(argv[1]);
 
-    PatternGenerator pg = get_mmap_16k_cont_rwx();
+    PatternGenerator pg = get_mmap_cont(4 /* 16KB */, 7 /* RWX */);
     Next next;
 
     std::cout << getkernelmem() << " " 

@@ -49,15 +49,13 @@ class PatternGenerator {
 };
 
 // Define a bunch of common patterns
-PatternGenerator get_mmap_4k_cont_rwx();
-PatternGenerator get_mmap_16k_cont_rwx();
-PatternGenerator get_mmap_1M_cont_rwx();
-PatternGenerator get_mmap_16k_stride_32k_rwx();
-PatternGenerator get_mmap_4k_cont_rwx_prot_4k_rdonly();
-PatternGenerator get_mmap_16k_cont_rwx_prot_4k_rdonly();
-PatternGenerator get_mmap_16k_remap_4k();
-PatternGenerator get_mmap_16k_remap_4k();
-PatternGenerator get_mmap_4k_stride_8k_rwx_remap_4k();
+PatternGenerator get_mmap_cont(int, char);
+PatternGenerator get_mmap_cont_change_prot(int, char, char);
+PatternGenerator get_mmap_cont_change_prot_partial(int, char, int, char);
+PatternGenerator get_mmap_stride(int, char, int);
+PatternGenerator get_mmap_large_remap_small(int, char, int);
+PatternGenerator get_mmap_small_remap_large(int, char, int);
+PatternGenerator get_mmap_stride_reloc(int, char);
 PatternGenerator get_mmap_16k_cont_munmap_8k();
 PatternGenerator get_mmap_4k_remap_8k_unmap_4k();
 
