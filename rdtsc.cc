@@ -13,6 +13,7 @@ double get_ticks_per_nano() {
    unsigned long long interval = NANO_SEC_PER_SEC * (end.tv_sec - start.tv_sec) 
        + end.tv_nsec - start.tv_nsec;
    double ticks_per_nano = (double) total_ticks / (double) interval;
+   return ticks_per_nano;
 }
 
 void print_interval(unsigned long long start, unsigned long long end, 
