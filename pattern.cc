@@ -108,7 +108,7 @@ PatternGenerator get_mmap_cont_change_prot_partial(int size, char permissions,\
                 int sub_size, char new_permissions) {
     PatternPart first;
     first.size = size; // size * 4KB
-    first.location = size - sub_size;
+    first.location = size;
     first.permissions = permissions;
     first.operation = OP_MMAP;
 
@@ -147,8 +147,8 @@ PatternGenerator get_mmap_large_remap_small(int large_size, char permissions, in
     return PatternGenerator(pattern);
 }
 
-// mmap a bunch of 4KB pages
-// Resize them to 16KB pages
+// mmap a bunch of small pages
+// Resize them to large pages
 PatternGenerator get_mmap_small_remap_large(int small_size, char permissions, int large_size) {
     PatternPart first;
     first.size = small_size; // small_size * 4KB
@@ -169,8 +169,8 @@ PatternGenerator get_mmap_small_remap_large(int small_size, char permissions, in
     return PatternGenerator(pattern);
 }
 
-// mmap a bunch of 4KB pages with a stride of 8KB
-// Remap the 4KB pages to the unmapped spaces
+// mmap a bunch of pages with a certain stride
+// Remap the pages to the unmapped spaces
 PatternGenerator get_mmap_stride_reloc(int size, char permissions) {
     PatternPart first;
     first.size = size; // size * 4KB
