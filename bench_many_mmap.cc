@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     size_t number = atol(argv[2]);
 
     // actual
-    for(int i = 0; i < number; i++) {
+    for(size_t i = 0; i < number; i++) {
         unsigned long long start = rdtsc();
 
         char *addr = (char*)mmap(NULL, amt, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);

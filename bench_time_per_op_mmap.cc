@@ -11,7 +11,6 @@ int main(int argc, char* argv[]) {
     PatternGenerator pg = get_mmap_cont(1, 7);
 
     Next cur;
-    size_t i;
     char* addr;
 
     if (argc < 3) {
@@ -24,7 +23,6 @@ int main(int argc, char* argv[]) {
     
     double ticks_per_nano = get_ticks_per_nano();  // calibrate rdtsc before measuring
 
-    unsigned long long start = rdtsc();
     
     for (int i = 0; i < tot_ops; i++) {
         //  assuming all ops were sucessful
