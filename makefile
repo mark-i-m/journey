@@ -14,10 +14,10 @@ DEPS=$(DEPS_H) $(DEPS_CXX_OBJS)
 all: $(BENCH_CXX_TARGETS)
 
 $(BENCH_CXX_TARGETS): % : %.cc $(DEPS)
-	g++ -O0 -o $@ $^
+	g++ -Wall -Werror -O0 -o $@ $^
 
 $(DEPS_CXX_OBJS): %.o : %.cc $(DEPS_H)
-	g++ -O0 -c -o $@ $<
+	g++ -Wall -Werror -O0 -c -o $@ $<
 
 clean:
 	rm -f *.o $(BENCH_CXX_TARGETS)
