@@ -238,6 +238,7 @@ PatternGenerator get_mmap_4k_remap_8k_unmap_4k() {
     std::vector<PatternPart> pattern;
     pattern.push_back(first);
     pattern.push_back(second);
+    pattern.push_back(third);
 
     return PatternGenerator(pattern);
 }
