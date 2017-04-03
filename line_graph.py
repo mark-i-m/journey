@@ -19,7 +19,7 @@ with open(DATA, 'r') as f:
         data.append(xs)
 
 for i in range(len(data[0])) if WHICH is None else WHICH:
-    ys = [x[i] for x in data]
+    ys = [x[i] - data[0][i] for x in data]
     line, = plt.plot(ys)
 
 #plt.xscale("log", basex = 2)
