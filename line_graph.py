@@ -28,11 +28,14 @@ for data_file in argv[4:]:
 
             data[data_file].append(xs)
 
+handles = []
+
 for data_file in data:
     for i in WHICH:
         if i < len(data[data_file][0]):
             ys = [x[i] - data[data_file][0][i] for x in data[data_file]]
-            line, = plt.plot(ys)
+            line, = plt.plot(ys, label = data_file)
+            handles.append(line)
 
 #plt.xscale("log", basex = 2)
 #plt.yscale(SCALE)
@@ -43,6 +46,8 @@ for data_file in data:
 plt.xlabel(AXIS_X)
 plt.ylabel(AXIS_Y)
 plt.grid(True)
+
+plt.legend(handles = handles)
 
 font = {'family' : 'normal',
         'weight' : 'bold',
