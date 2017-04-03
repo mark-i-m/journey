@@ -21,7 +21,7 @@ void print_interval(unsigned long long start, unsigned long long end,
 
     unsigned long long interval = end - start;
     unsigned long long nano_secs = (double) interval / ticks_per_nano;
-    printf("nsecs/op %llu\n", nano_secs);
+    printf("%llu\n", nano_secs);
 
 }
 

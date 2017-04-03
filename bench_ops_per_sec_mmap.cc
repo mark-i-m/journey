@@ -11,7 +11,6 @@ int main(int argc, char* argv[]) {
     PatternGenerator pg = get_mmap_cont(1, 7);
 
     Next cur;
-    size_t i;
     char* addr;
 
     if (argc < 2) {

@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     PatternGenerator pg = get_mmap_cont(4 /* 16KB */, 7 /* RWX */);
 
     Next cur;
-    size_t i;
+    //size_t i;
     char* addr;
 
     if (argc < 2) {

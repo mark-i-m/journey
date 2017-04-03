@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
 
     // Read randomized offsets from a file
     FILE *f = fopen("offsets.txt", "r");
-    int *offsets, i;
+    int *offsets;
+    unsigned int i;
 
     if (!f) {
       fputs("Couldn't open offsets.txt\n", stderr);
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
               << meminfo("PageTables") << std::endl;
 
     for (size_t i = 0; i < amt; i++) {
-        unsigned long maddr = START + offsets[i] << 12;
+        unsigned long maddr = START + (offsets[i] << 12);
         char *addr = (char *)mmap((void *)maddr, 4 << 12, 7, MAP_ANON | MAP_PRIVATE, -1, 0);
         if (addr == MAP_FAILED) {
             std::cerr << "mmap failed: " << strerror(errno) << std::endl;
