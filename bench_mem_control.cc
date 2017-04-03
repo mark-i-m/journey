@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv)
 {
-	if (argc < 2) {
+/*	if (argc < 2) {
         std::cout << "Usage: ./memusage number_order" << std::endl;
 		return -1;
 	}
@@ -17,9 +17,9 @@ int main(int argc, char **argv)
               << slabinfo("vm_area_struct") << " " 
               << meminfo("PageTables") << std::endl;
 
-	for (int i = 0; i < amt; i++) {
+	for (size_t i = 0; i < amt; i++) {
         std::cout << getkernelmem() << " " 
                   << slabinfo("vm_area_struct") << " " 
                   << meminfo("PageTables") << std::endl;
-	}
+	}*/
 }

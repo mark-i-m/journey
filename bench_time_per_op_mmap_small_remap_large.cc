@@ -12,7 +12,6 @@ int main(int argc, char* argv[]) {
     PatternGenerator pg = get_mmap_small_remap_large(1 /* 4KB */,  7 /* RWX */, 4 /* 16KB*/);
 
     Next cur;
-    size_t i;
     char* addr;
 
     if (argc < 2) {
@@ -26,7 +25,7 @@ int main(int argc, char* argv[]) {
 
     unsigned long long start = rdtsc();
     
-    int size;
+    unsigned int size;
     for (int i = 0; i < tot_ops; i++) {
         //  assuming all ops were sucessful
         cur = pg.next();
