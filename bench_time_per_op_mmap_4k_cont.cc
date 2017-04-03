@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     set_cpu(0);
-    PatternGenerator pg = get_mmap_cont(1, 7);
+    PatternGenerator pg = get_mmap_cont(1 /* 4KB */, 7 /* RWX */);
 
     Next cur;
     char* addr;
@@ -39,12 +39,6 @@ int main(int argc, char* argv[]) {
         }
         if (touch == 1) addr[0] = 'X'; // touch
     }
-
-/*    unsigned long long end = rdtsc();
-    unsigned long long interval = end - start;
-    unsigned long long nano_secs = (double) interval / ticks_per_nano;*/
-
-/*    printf("nsec/op = %llu\n", nano_secs / tot_ops);*/
 
     return 0;
 
