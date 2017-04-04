@@ -3,20 +3,20 @@ import os
 
 def run_mmap_cont():
     print "cont run 1"
-    os.system("./bench_time_per_op_mmap_cont 20 0 > time_per_op_mmap_cont_1") 
+    os.system("./bench_time_per_op_mmap_16k_cont 20 0 > time_per_op_mmap_cont_1") 
     print "cont run 2"
-    os.system("./bench_time_per_op_mmap_cont 20 0 > time_per_op_mmap_cont_2") 
+    os.system("./bench_time_per_op_mmap_16k_cont 20 0 > time_per_op_mmap_cont_2") 
     print "cont run 3"
-    os.system("./bench_time_per_op_mmap_cont 20 0 > time_per_op_mmap_cont_3") 
+    os.system("./bench_time_per_op_mmap_16k_cont 20 0 > time_per_op_mmap_cont_3") 
     print "cont run 4"
-    os.system("./bench_time_per_op_mmap_cont 20 0 > time_per_op_mmap_cont_4") 
+    os.system("./bench_time_per_op_mmap_16k_cont 20 0 > time_per_op_mmap_cont_4") 
     print "cont run 5"
-    os.system("./bench_time_per_op_mmap_cont 20 0 > time_per_op_mmap_cont_5") 
+    os.system("./bench_time_per_op_mmap_16k_cont 20 0 > time_per_op_mmap_cont_5") 
 
     files = ["time_per_op_mmap_cont_1", "time_per_op_mmap_cont_2","time_per_op_mmap_cont_3",
             "time_per_op_mmap_cont_4","time_per_op_mmap_cont_5"]
     out_file_name = "time_per_op_mmap_cont.res"
-    merge_output(files, out_file_name)
+    #merge_output(files, out_file_name)
 
 def merge_output(files, file_name):
     dic = {}
@@ -40,25 +40,25 @@ def merge_output(files, file_name):
 
 def run_mmap_strided():
     print "strided run 1"
-    os.system("./bench_time_per_op_mmap_stride 20 0 > time_per_op_mmap_stride_1") 
+    os.system("./bench_time_per_op_mmap_16k_stride 20 0 > time_per_op_mmap_stride_1") 
     print "strided run 2"
-    os.system("./bench_time_per_op_mmap_stride 20 0 > time_per_op_mmap_stride_2") 
+    os.system("./bench_time_per_op_mmap_16k_stride 20 0 > time_per_op_mmap_stride_2") 
     print "strided run 3"
-    os.system("./bench_time_per_op_mmap_stride 20 0 > time_per_op_mmap_stride_3") 
+    os.system("./bench_time_per_op_mmap_16k_stride 20 0 > time_per_op_mmap_stride_3") 
     print "strided run 4"
-    os.system("./bench_time_per_op_mmap_stride 20 0 > time_per_op_mmap_stride_4") 
+    os.system("./bench_time_per_op_mmap_16k_stride 20 0 > time_per_op_mmap_stride_4") 
     print "strided run 5"
-    os.system("./bench_time_per_op_mmap_stride 20 0 > time_per_op_mmap_stride_5") 
+    os.system("./bench_time_per_op_mmap_16k_stride 20 0 > time_per_op_mmap_stride_5") 
 
     files = ["time_per_op_mmap_stride_1","time_per_op_mmap_stride_2", "time_per_op_mmap_stride_3", 
              "time_per_op_mmap_stride_4", "time_per_op_mmap_stride_5"]
     out_file_name = "time_per_op_mmap_stride.res"
 
-    merge_output(files, out_file_name)
+    #merge_output(files, out_file_name)
 
 
 def main():
-    run_mmap_cont()
+    #run_mmap_cont()
     run_mmap_strided()
 
     return  ## don't wanna pollute the environment by compiling during the actual run!
