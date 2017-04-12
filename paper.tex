@@ -2,6 +2,7 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{caption}
+\usepackage{graphicx}
 
 \title{Journey: A Study of Studying Large Memory Systems}
 \author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada}
@@ -278,7 +279,19 @@ impact of swapfile size on swapping overhead.
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
-TODO
+\begin{figure}
+    \includegraphics[width=\columnwidth]{memory_controled}
+    \caption{$\Delta_i$ adjusted with control for benchmarks}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{vm_area_struct_count}
+    \caption{Number of \texttt{vm\_area\_struct}s for benchmarks}
+\end{figure}
+
+TODO: memory results
+
+TODO: time results
 
 \subsection{Swapping Experiments}
 
