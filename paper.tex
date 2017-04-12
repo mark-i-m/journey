@@ -257,20 +257,20 @@ to using swapping.
 
 In this experiment, a single process touches 32GB of virtual memory, leading to
 the actual allocation of physical memory. Notice that 32GB is twice as large as
-the 16GB of physical memory the test machine. This causes Linux kernel to start
-swapping out pages to make more room.  After each page of virtual memory is
-touched, the resident set size (RSS; the amount of physical memory Linux has
-allocated to the process) is recorded. This value is graphed in our results
-section.
+the 16GB of physical memory in the test machine, causing Linux to start paging
+after physical memory is exhausted. Also, notice that the Linux kernel will
+reserve some memory for its own operation.
 
-This experiment with 5 different swapfile sizes to capture the impact
-of swapfile size on swapping overhead.
+After each page of virtual memory is touched, the resident set size (RSS; the
+amount of physical memory Linux has allocated to the process) is recorded.  The
+values of RSS are stored in an mlocked array and written to a file after the
+benchmark completes. This prevents the writing of the results from interacting
+with paging.  These RSS values are graphed in our results section.
+
+This experiment is repeated with 5 different swapfile sizes to capture the
+impact of swapfile size on swapping overhead.
 
 (TODO: strided access vs random access?)
-
-During this experiment, the values of RSS are stored in a mlocked array and
-written to a file after the benchmark completes. This prevents the writing of
-the results from interacting with paging.
 
 (TODO: optional: trying pulling out a DIMM??)
 
