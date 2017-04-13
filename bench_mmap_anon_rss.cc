@@ -25,6 +25,11 @@ int main(int argc, char **argv) {
     unsigned long* res_array = (unsigned long*)malloc(num_pages_mapped * 
             sizeof(unsigned long));
 
+    // touch all pages
+    for(unsigned long i = 0; i < num_pages_mapped; i++) {
+        res_array[i] = 0;
+    }
+
     // lock this results array itself so itself is not swapped out
     if(!mlock((const void*) res_array, num_pages_mapped * sizeof(unsigned long))) {
         std::cerr << "mlock failed: " << strerror(errno) << std::endl;

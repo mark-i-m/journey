@@ -28,6 +28,11 @@ int main(int argc, char **argv) {
     unsigned long* res_array = (unsigned long*)malloc(num_pages_mapped * 
             sizeof(unsigned long));
 
+    // touch all pages
+    for(unsigned long i = 0; i < num_pages_mapped; i++) {
+        res_array[i] = 0;
+    }
+
     // lock this results array itself so itself is not swapped out
     if(!mlock((const void*) res_array, num_pages_mapped * sizeof(unsigned long))) {
         std::cerr << "mlock failed: " << strerror(errno) << std::endl;
@@ -44,10 +49,16 @@ int main(int argc, char **argv) {
         *addr = 'X';
         res_array[num_touched++] = statusinfo("VmRSS");
 
-        addr = ((char*)start_addr) + (rand() % vma_size);
+        int rand_hi = rand();
+        int rand_lo = rand();
+        unsigned long rand_30 = ((unsigned long)rand_hi) << 15 | rand_lo;
+        unsigned long rand_22 = rand_30 & 0x3FFFFF;
+
+        addr = ((char*)start_addr) + rand_22;
+        //printf("%lx %lx\n", (unsigned long)start_addr, (unsigned long)addr);
     }
 
     for (unsigned int i = 0; i < num_pages_mapped; i++) {
-        std::cout << res_array[i++] << std::endl;
+        //std::cout << res_array[i++] << std::endl;
     }
 }
