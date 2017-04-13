@@ -34,6 +34,8 @@ for data_file in data:
     for i in WHICH:
         if i < len(data[data_file][0]):
             ys = [x[i] - data[data_file][0][i] for x in data[data_file]]
+            # uncomment next line to prevent normalizing to X_0
+            #ys = [x[i] for x in data[data_file]]
             line, = plt.plot(ys, label = data_file)
             handles.append(line)
 
