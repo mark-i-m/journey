@@ -60,6 +60,6 @@ int main(int argc, char **argv) {
     }
 
     for (unsigned int i = 0; i < num_pages_mapped; i++) {
-        std::cout << res_array[i++] << std::endl;
+        std::cout << res_array[i] << std::endl;
     }
 }
