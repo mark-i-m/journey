@@ -13,7 +13,13 @@
 int main(int argc, char **argv) {
     set_cpu(0);
 
-    uint64_t vma_size = (uint64_t)1 << 35; // fixed at 32 GB
+	if (argc < 2) {
+        std::cout << "Usage: ./memusage num_gb" << std::endl;
+		return -1;
+	}
+
+	size_t gbs = atoi(argv[1]);
+    uint64_t vma_size = (uint64_t)gbs << 30;
 
     char* start_addr = (char*)mmap(NULL, vma_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
     if (start_addr == MAP_FAILED) {
