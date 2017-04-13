@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
         int rand_hi = rand();
         int rand_lo = rand();
-        unsigned long rand_30 = ((unsigned long)rand_hi) << 15 | rand_lo;
+        unsigned long rand_30 = (((unsigned long)rand_hi) << 15) ^ rand_lo;
         unsigned long rand_22 = rand_30 & 0x3FFFFF;
 
         addr = ((char*)start_addr) + rand_22;
@@ -59,6 +59,6 @@ int main(int argc, char **argv) {
     }
 
     for (unsigned int i = 0; i < num_pages_mapped; i++) {
-        //std::cout << res_array[i++] << std::endl;
+        std::cout << res_array[i++] << std::endl;
     }
 }
