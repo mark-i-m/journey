@@ -50,15 +50,16 @@ int main(int argc, char **argv) {
         res_array[num_touched++] = statusinfo("VmRSS");
 
         int rand_hi = rand();
+        int rand_mi = rand();
         int rand_lo = rand();
-        unsigned long rand_30 = (((unsigned long)rand_hi) << 15) ^ rand_lo;
-        unsigned long rand_22 = rand_30 & 0x3FFFFF;
+        unsigned long rand_45 = (((unsigned long)rand_hi) << 30) ^ (((unsigned long)rand_mi) << 15) ^ rand_lo;
+        unsigned long rand_35 = rand_45 & 0x7FFFFFFFF;
 
-        addr = ((char*)start_addr) + rand_22;
-        //printf("%lx %lx\n", (unsigned long)start_addr, (unsigned long)addr);
+        addr = ((char*)start_addr) + rand_35;
+        //printf("%lx\n", (unsigned long)addr);
     }
 
     for (unsigned int i = 0; i < num_pages_mapped; i++) {
-        std::cout << res_array[i++] << std::endl;
+        //std::cout << res_array[i++] << std::endl;
     }
 }
