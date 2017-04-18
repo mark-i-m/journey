@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     }
 
     // lock this results array itself so it is not swapped out
-    if(!mlock((const void*) res_array, num_pages_mapped * sizeof(unsigned long long))) {
+    if(mlock((const void*) res_array, num_pages_mapped * sizeof(unsigned long long))) {
         std::cerr << "mlock failed: " << strerror(errno) << std::endl;
         exit(1);
     }
