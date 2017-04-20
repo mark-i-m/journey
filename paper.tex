@@ -4,7 +4,7 @@
 \usepackage{caption}
 \usepackage{graphicx}
 
-\title{Journey: A Study of Studying Large Memory Systems (TODO: should we get a new title?)}
+\title{Journey: A Study in Unhelpful Titles (TODO: should we get a new title?)}
 \author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada}
 \date{}
 
@@ -212,6 +212,21 @@ organizes all regions into a balanced binary tree for fast lookup.  Moreover,
 adjacent regions with similar permissions and properties are merged in an
 effort to keep bookkeeping costs low.
 
+(TODO: explain struct page?)
+
+We measure the memory overhead and latency of the Linux Memory Management
+system's use of \texttt{vm\_area\_struct}, which represents a region of a
+process's virtual address space.  
+We do not measure the overhead of \texttt{struct page} because it is known that
+there is one struct for each physical page. We do not measure the overhead of
+page tables because this can be calculated from the size of the virtual memory
+space used by the process.  When a program makes a memory management system
+calls such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap},
+\texttt{mprotect}, \texttt{mlock}, or \texttt{madvise}, the kernel is creating,
+changing, or removing \texttt{vm\_area\_struct}s; thus, measuring the
+scalability of Linux memory management requires measuring the overhead of these
+structs.
+
 \subsection{Swapping}
 
 Under memory pressure, the kernel may choose to write some pages of memory to
@@ -274,36 +289,15 @@ Storage & 500GB, 7200RPM \\
 \caption{Specifications of our test machine.  \label{fig:specs}}
 \end{figure}
 
-\subsection{\texttt{vm\_area\_struct}}
-
-We measure the memory overhead and latency of the Linux Memory Management
-system's use of \texttt{vm\_area\_struct}, which represents a region of a
-process's virtual address space.  We do not measure the overhead of
-\texttt{struct page} because it is known that there is one struct for each
-physical page. We do not measure the overhead of page tables because this can be
-calculated from the size of the virtual memory space used by the process.  When
-a program makes a memory management system calls such as \texttt{mmap},
-\texttt{mremap}, \texttt{munmap}, \texttt{mprotect}, \texttt{mlock}, or
-\texttt{madvise}, the kernel is creating, changing, or removing
-\texttt{vm\_area\_struct}s; thus, measuring the scalability of Linux memory
-management requires measuring the overhead of these structs.
+The specifications of the machine we used to run our experiments are listed in
+Figure \ref{fig:specs}. We disabled Intel SpeedStep and TurboBoost and ensure
+that the processor frequency stays constant (TODO: did we do this?). All
+experiments are pinned to the same core on our machine. 
 
 We run several different microbenchmarks, each of which has a different memory
 allocation pattern. These benchmarks are designed to stress the memory
-management system in different ways, rather than simulate real workloads. For
-each workload, we measure the latency and increase in memory usage due to each
-operation in the benchmark. Notably, we do not touch the pages that we allocate,
-avoiding both a page fault and the allocation of a back physical page for the
-allocated virtual pages. This allows us to measure just the overhead of memory
-management, as opposed to physical page allocation, swapping, page faults, or
-other overheads.  Each workload contains $2^{20}$ memory management operations.
-
-The specifications of the machine are listed in Figure \ref{fig:specs}. We
-disabled Intel SpeedStep and TurboBoost. All experiments are pinned to the same
-core on our machine. Each benchmark was run 5 times and the results aggregated
-as described below. We reboot the machine when switching to a different
-benchmark, but keep the machine running continually during the runs of the same
-benchmark. Each run is executed in isolation, without any additional processes
+management system in different ways, rather than simulate real workloads. 
+Each run is executed in isolation, without any additional processes
 running beyond services that start when the system is booted and a single ssh
 session. We are careful to avoid opening extra ssh sessions, running screen or
 tmux, or executing extra commands while a benchmark is running, as these may
@@ -312,24 +306,42 @@ impact memory usage, and thus our results.
 We measured latency using the \texttt{rdtsc} instruction provided by x86\_64
 processors, which gives high resolution cycle-level timestamps. We take a
 timestamp before and after each memory management operation in the workload and
-take the difference to get latency. The median latency of each operation is
-reported across all 5 runs.
+take the difference to get latency. (TODO: is this still true?)
 
-To measure memory, we use the procfs's reporting on current memory usage, along
-with the slab allocator's count of active \texttt{vm\_area\_struct}s in the
-system. Measuring kernel memory usage and associating memory usage with
-processes is very difficult. Our methodology assumes that our benchmarks running
-in otherwise idle systems should dominate increases in memory usage.  Thus, we
-compute total memory usage in the system as the total amount of memory less the
-amount of memory used. From this amount, we subtract the resident set size of
-the benchmark process. The result is the memory usage of the rest of the system
-$R$. We denote $R_i$ as the $i$-th measurement of $R$ during a run ($i = 0, 1,
-... 2^{20}$). System memory usage is known to jitter in Linux (TODO: cite). To
-adjust for this jitter, we define $\Delta_i = R_i - R_0$. For each operation, we
-take the median value of $\Delta_i$ across the 5 runs to reduce jitter further.
-This is the value graphed in the figures in this section. $\Delta_i$ represents
-the increase in memory usage due to memory management overheads caused by
-running $i$ memory management operations.
+To measure memory usage, we use the procfs's reporting on current memory usage.
+Where appropriate, we record the slab allocator's count of active
+\texttt{vm\_area\_struct}s in the system. Measuring kernel memory usage and
+associating memory usage with processes is difficult. Our methodology assumes
+that our benchmarks are running in an otherwise idle system and should dominate
+increases in memory usage.  We compute total memory usage by the rest of the
+system as the total amount of memory less the amount of memory used by the
+benchmark.
+
+Finally, we keep transparent huge pages on throughout our experiments, unless
+otherwise specified.
+
+\subsection{\texttt{vm\_area\_struct}}
+
+For each workload, we measure the latency and increase in memory usage due to
+each operation in the benchmark. Notably, we do not touch the pages that we
+allocate, avoiding both a page fault and the allocation of a back physical page
+for the allocated virtual pages. This allows us to measure just the overhead of
+memory management, as opposed to physical page allocation, swapping, page
+faults, or other overheads.  Each workload contains $2^{20}$ memory management
+operations.
+
+Each benchmark was run 5 times and the results aggregated as described below. We
+reboot the machine when switching to a different benchmark, but keep the machine
+running continually during the runs of the same benchmark. 
+
+Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as the
+$i$-th measurement of $R$ during a run ($i = 0, 1, ... 2^{20}$). System memory
+usage is known to jitter in Linux (TODO: cite). To adjust for this jitter, we
+define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
+$\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
+graphed in the figures in this section. $\Delta_i$ represents the increase in
+memory usage due to memory management overheads caused by running $i$ memory
+management operations.
 
 The workloads we measure are
 
@@ -360,26 +372,54 @@ it somewhere else.  \end{itemize}
 These experiments are designed to measure the minimum amount of memory needed
 to using swapping.
 
-In this experiment, a single process touches 32GB of virtual memory, leading to
-the actual allocation of physical memory. Notice that 32GB is twice as large as
-the 16GB of physical memory in the test machine, causing Linux to start paging
-after physical memory is exhausted. Also, notice that the Linux kernel will
-reserve some memory for its own operation.
+A single process allocates 18GB of virtual memory space. It then proceeds to
+write one byte of each 4KB page in the region, leading to the actual allocation
+of physical memory. Notice that 18GB exceeds the 16GB of physical memory in the
+test machine, causing Linux to start paging after physical memory is exhausted.
+Also, notice that the Linux kernel will reserve some memory for its own
+operation.
+
+We run this experiment with both a strided access pattern and a random access
+pattern. The stride access pattern simply touches pages in order of increasing
+address. The random access pattern chooses a random address. Both patterns touch
+the same number of addresses.
 
 After each page of virtual memory is touched, the resident set size (RSS; the
 amount of physical memory Linux has allocated to the process) is recorded.  The
 values of RSS are stored in an mlocked array and written to a file after the
 benchmark completes. This prevents the writing of the results from interacting
-with paging.  These RSS values are graphed in our results section.
+with paging. These RSS values are graphed in our results section.
 
-This experiment is repeated with 5 different swapfile sizes to capture the
-impact of swapfile size on swapping overhead.
+Moreover, we measure the latency of each memory store operation to see the
+impact of swapping and virtual memory usage on memory access times.
 
-(TODO: strided access vs random access?)
+We repeat this with 32GB of swap space and 128GB of swap space to see the
+impact of swap space size on the amount of memory the kernel reserves for
+itself, along with the impact on latency.
 
 \subsection{kswapd}
 
-TODO
+These experiments are designed to measure the processing overhead of kswapd when
+the system is under high memory pressure.
+
+A single process allocates 18GB of virtual memory space. It then proceeds to
+write one byte of each 4KB page in the region, leading to the actual allocation
+of physical memory. The process chooses addresses randomly, as in the previous
+set of experiments, inducing the maximum amount of swapping.
+
+In all these experiments, the system is given 32GB of swap space total. We
+measure the impact of physical memory size and transparent huge pages. We run
+four experiments:
+
+\begin{enumerate}
+    \item 1GB physical memory with huge pages enabled
+    \item 16GB physical memory with huge pages enabled
+    \item 1GB physical memory with huge pages disabled
+    \item 16GB physical memory with huge pages disabled
+\end{enumerate}
+
+To run the 1GB memory benchmarks, we hot unplug 15GB using the sysfs in Linux.
+This makes the unplugged memory unusable by the whole system (kernel and user).
 
 \section{Result}
 
