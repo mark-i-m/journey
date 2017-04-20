@@ -55,8 +55,6 @@ building a research tool and for building systems.
 
 \section{Related Work}
 
-(TODO: do we need to refocus this section? or move parts of it to an appendix?)
-
 The emergence of new technology has in the past often required operating systems
 to change. Traditionally, OS researchers and developers benchmark and test their
 solutions in new environments to demonstrate their efficacy before using them in
@@ -216,21 +214,51 @@ effort to keep bookkeeping costs low.
 
 \subsection{Swapping}
 
-TODO
+Under memory pressure, the kernel may choose to write some pages of memory to
+disk and then free those pages for use. Memory mapped files are written back to
+their backing files, but anonymous memory is written to portion of the disk
+called swap space. We focus on anonymous memory in our experiments.
+
+Before swapping a page out to disk, the kernel must reserve a slot for the page
+in the swap space, unmap it from the process's address space, and record which
+swap slot corresponds to the page.
+
+On Linux, the system may have multiple swap spaces in the form of a swap disk
+partition or of swapfiles on a filesystem. Both have a similar format on disk,
+in which the space is broken into a number of swap slots large enough for one
+page. For each of these swap spaces, the kernel keeps a swap map, which records
+the usage of each swap slot so that it can find and allocate them quickly.
+
+Unmapping a page from a process's address space involves simply marking its page
+table entry ``Not Present''. Rather than using a separate data structure, Linux
+uses the unused page table entry to record information about which swap space
+and slot is used to swap out the page.
 
 \subsection{Page Frame Reclamation}
 
-TODO
+To determine which pages to swap out, Linux uses the Page Frame Reclamation
+subsystem. Choosing which pages to swap out is important because if the system
+swaps out pages that are about to be used, thrashing may be induced, in which
+the system wastes lots of time swapping out a page just swap it back in.
 
+The Linux Page Frame Reclamation Algorithm (PFRA) attempts to approximate LRU
+order. It uses a clock-like algorithm, in which a list of pages is scanned
+twice. Roughly speaking, if a page is not used between scans, then it is a
+condidate for reclamation.
+
+The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
+intervals and sleeps in between. Also, it may be invoked if the system detects
+that memory has gone below a threshold. kswapd will continue to run until enough
+pages are freed to bring the free memory pool above some threashold. Then,
+kswapd goes back to sleep.  One concern with large memory systems is that kswapd
+may expend significant CPU time scanning through hundreds of thousands of pages.
 
 \section{Methodology}
 
-We conduct a series of experiments to measure the scalability of various parts of the Linux memory management system.
-First, we measure the scalability of
+We conduct a series of experiments to measure the scalability of various parts
+of the Linux memory management system.  First, we measure the scalability of
 Linux's \texttt{vm\_area\_struct}. Then, we measure the minimum amount of memory
 necessary for swapping.
-
-\subsection{\texttt{vm\_area\_struct} Experiments}
 
 \begin{figure}
 \centering
@@ -245,6 +273,8 @@ Storage & 500GB, 7200RPM \\
 \end{tabular}
 \caption{Specifications of our test machine.  \label{fig:specs}}
 \end{figure}
+
+\subsection{\texttt{vm\_area\_struct}}
 
 We measure the memory overhead and latency of the Linux Memory Management
 system's use of \texttt{vm\_area\_struct}, which represents a region of a
@@ -325,7 +355,7 @@ $2^{19} + 2^{18}$ contiguous 4KB blocks. Then, it resizes every other block to
 kernel to find a block it has not touched in over $2^{19}$ operations and move
 it somewhere else.  \end{itemize}
 
-\subsection{Swapping Experiments}
+\subsection{Swapping Memory Overhead}
 
 These experiments are designed to measure the minimum amount of memory needed
 to using swapping.
@@ -347,7 +377,9 @@ impact of swapfile size on swapping overhead.
 
 (TODO: strided access vs random access?)
 
-(TODO: optional: trying pulling out a DIMM??)
+\subsection{kswapd}
+
+TODO
 
 \section{Result}
 
