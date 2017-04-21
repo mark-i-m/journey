@@ -421,6 +421,13 @@ four experiments:
 To run the 1GB memory benchmarks, we hot unplug 15GB using the sysfs in Linux.
 This makes the unplugged memory unusable by the whole system (kernel and user).
 
+We measure CPU time via the procfs using the same methodology as the
+\texttt{top} utility. The \texttt{/proc/[pid]/stat} file for kswapd is read.
+From this file the \texttt{utime} and \texttt{stime} fields are read and summed
+to get the total time allocated to kswapd. Then, the \texttt{/proc/stat} file is
+read to get the total system time elapsed. By dividing, we can find the portion
+of CPU time spent in kswapd.
+
 \section{Result}
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
