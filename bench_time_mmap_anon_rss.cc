@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
         *addr = 'X';
         res_array[num_touched++] = rdtsc() - start;
         if (num_touched % 80000 == 0)  // how to set this number? if this is too short elapsed ~= 0 
-        printf("kswapd cpu util %lu \n", get_CPU_usage(kswapd_pid));
+            std::cout << "kswapd cpu util " << get_CPU_usage(kswapd_pid) << std::endl;
 
         addr += PAGE_SIZE;
     }

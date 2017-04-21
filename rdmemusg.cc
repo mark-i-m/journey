@@ -147,7 +147,7 @@ unsigned long get_CPU_usage(int pid) {
     close(f);
     
     
-    unsigned long elapsed_now = get_uptime();
+    unsigned long elapsed_now = get_uptime_jiffies();
     unsigned long elapsed_delta = elapsed_now - elapsed_before;
 
     
@@ -162,6 +162,46 @@ unsigned long get_CPU_usage(int pid) {
     
     return kswapd_cpu_util;
 
+}
+
+unsigned long get_uptime_jiffies() {
+    unsigned long total_uptime = 0;
+    char buffer[1024];
+	int f = open("/proc/stat", O_RDONLY);
+	if (f == -1) {
+		fputs("Couldn't open /proc/stat file\n", stderr);
+        exit(1);
+	}
+
+    int bytes_read;
+    if ((bytes_read = read(f, buffer, sizeof(buffer) )) < 0) {
+        printf("failed to read /proc/stat file \n"); 
+        exit(1);
+    }
+    buffer[bytes_read] = '\0';
+
+    // want to get just the first line
+    for (unsigned int i = 0; i < sizeof(buffer); i++) {
+        if (buffer[i] == '\n'){
+            buffer[i] = '\0';
+            break;
+        }
+    }
+    close(f);
+
+    char** my_tail = NULL;
+    char* token = strtok(buffer, " "); // first token is "cpu" 
+
+    //  a list of various kinds of time.. 
+    //  sum all of them to get total
+    while (token) {
+        token = strtok(NULL, " ");
+        if (token != NULL)
+        total_uptime += strtoul(token, my_tail, 10);
+    
+    }
+    return total_uptime;
+    
 }
 
 unsigned long get_uptime() {
