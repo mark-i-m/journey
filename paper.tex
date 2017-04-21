@@ -4,7 +4,7 @@
 \usepackage{caption}
 \usepackage{graphicx}
 
-\title{Journey: A Study of Studying Large Memory Systems}
+\title{Journey: A Study in Unhelpful Titles (TODO: should we get a new title?)}
 \author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada}
 \date{}
 
@@ -37,13 +37,21 @@ benchmarks, which are less realistic. We note that there was a similar problem
 when large storage systems first became available \cite{david, exalt}.
 
 Currently, there are few good tools available to systems researchers for
-understanding how systems interact with large memories. The ideal end-goal of
-this research is to identify bottlenecks in managing large memories and find a
+understanding how systems interact with large memories. We see the need for a
 general lightweight technique or tool for studying and designing operating
 systems capable of handling large memory while using systems currently
-available to researchers.
+available to researchers.  An important first step towards building such a tool
+is to identify bottlenecks in managing large memories that make a tool
+difficult to develop. 
 
-(TODO: we might want to add stuff about using swap instead of larger memory)
+In particular, we look at the case of a single process using a large amount of
+memory in Linux. We run experiments to identify the costs of
+\texttt{vm\_area\_struct}, a common bookkeeping data structure in the Linux
+kernel, along with the memory and processing overheads of swapping. From these
+data, we extrapolate to systems running with more memory with an eye on
+implications for studying large systems. While these experiments are not
+comprehensive, we believe they can offer insights that are useful both for
+building a research tool and for building systems.
 
 \section{Related Work}
 
@@ -66,9 +74,9 @@ the benchmarks and systems they test. For example, they scale down a workload to
 fit in the 1GB memory of the machine they use and increase the number of threads
 to improve parallelism \cite{2kmachine}. This methodology may be accurate, but
 it requires modifying the benchmarks, which is error prone and time consuming;
-it can be extremely difficult to validate changes to a benchmark. In our work,
-we seek to avoid changes to the experimental workloads including changes to code
-or scale.
+it can be extremely difficult to validate changes to a benchmark. Ideally,
+researchers can run large experimental workloads without changes, but the overheads
+of current memory management systems prevent this from being practical.
 
 Likewise, the Quartz emulator studies the behaviour of applications on
 Non-volatile Memory (NVM) while actually running on top of DRAM. It uses
@@ -76,17 +84,21 @@ existing hardware capabilities to emulate the higher latency and lower bandwidth
 of most NVM technologies. While Quartz does not address the fact that the actual
 memory available to the applications on NVM might be orders of magnitude higher
 than on DRAM, it demonstrates that new technologies may be emulated using
-existing technology \cite{quartz}.
+existing technology \cite{quartz}. (TODO: is this system still relavent?)
 
 The Simics simulator uses demand paging for simulated environments, which means
-that memory is only allocated when it is used. As long as the working set of the
-target system fits in the host memory, performance will be tolerable.  However,
-in our work, we wish to study OS behavior under workloads that actually use all
-available memory. Thus, the usefulness of demand paging is greatly reduced. For
-these workloads, the performance of simulators like Simics tends to be
-impractical \cite{simics}. We do not explore simulation further because it can
-be orders of magnitude slower than native execution, making it infeasible for
-studying large workloads or systems \cite{2kmachine}.
+that memory is only allocated when it is used. As long as the working set of
+the target system fits in the host memory, performance will be tolerable.
+However, in our work, we wish to study OS behavior under workloads that
+actually use all available memory. Thus, the usefulness of demand paging is
+greatly reduced because swapping causes disk latency to become the main
+performance bottleneck. Moreover, the performance overhead of simulators like
+Simics tends to be impractical because system state needs to be maintained by
+the simulator \cite{simics}. We do not explore simulation further because it
+can be orders of magnitude slower than native execution, making it infeasible
+for studying large workloads or systems \cite{2kmachine}. However, the Simics
+simulator illustrates the usefulness of memory management techniques such as
+demand paging and the potential overheads of swapping.
 
 A similar problem was encountered by researchers studying both large storage
 drives and large distributed storage systems. David is a system that allows
@@ -104,7 +116,7 @@ the contents of a process’s heap and only storing kernel data structures and a
 process’s code and stack segments. However, generating heap contents on the fly
 is more difficult than generating disk contents because of the common use of
 custom data structures. Moreover, on Linux, the kernel data structures for 1TB
-of memory may also exceed the size of physical memory on present systems
+of memory may also exceed the size of physical memory on current systems
 \cite{simics}.
 
 A virtualized environment can be used to provide a guest system with more memory
@@ -115,29 +127,46 @@ Linux host running KVM will require the guest memory to be backed by host
 physical memory or host swap space \cite{ibmkvm}.  This means that when the
 virtual machine uses the whole amount of memory allocated to it, the host can
 swap pages to disk. The resulting poor performance can cause inaccurate
-performance measurements when running benchmarks.
+performance measurements when running benchmarks. It can also make large
+benchmarks impractical.
+
+Interestingly, many of non-volatile memory technologies are making their ways
+into storage drives, such as Intel's recently-announced Optane SSDs. One
+potential use of fast storage devices is for fast swapping space. Some
+literature has proposed that small amounts of DRAM backed by large amounts of
+fast swap space can be a scalable alternative to having large amounts of fast
+RAM (TODO: cite). (TODO: can we have this in our report?). In such a system,
+the overhead of swapping may become a bottleneck.
 
 Prefetching pages from swap space can offer a way to mitigate the overhead of
-memory overcommitment. When there is significant memory pressure, even pages
-which are likely to be accessed soon are swapped out to disk. They are faulted
-back into memory when accessed, resulting in significant performance cost.
-Charm++ uses a programming model where computations can be scheduled by the
-language runtime. A designated thread can prefetch pages required by a
-computation, averting page faults. Although this approach is effective in
-avoiding overhead, it requires applications to be written with a particular
-programming language and so is not applicable to most benchmarks without
-changing them \cite{charmpp}.
+memory overcommitment, possibly making large virtual machines a viable
+mechanism for studying large memory systems. When there is significant memory
+pressure, even pages which are likely to be accessed soon are swapped out to
+disk. They are faulted back into memory when accessed, resulting in significant
+performance cost.  Charm++ uses a programming model where computations can be
+scheduled by the language runtime. A designated thread can prefetch pages
+required by a computation, averting page faults \cite{charmpp}. Rather than
+implement page prefetching in a language runtime, one might implement a
+prefetcher in the swapping subsystem, making it general purpose. A large body
+of work already exists on hardware prefetching for processor caches, on which a
+swap prefetcher might draw for inspiration (TODO: cite). However, this approach
+can only work if page access patterns are predictable. Moreover, the high
+latency of disks implies that prefetchers would have to predict the very
+distant future (e.g. seconds ahead of execution). (TODO: Mike's comment on the
+previous version of this paragraph said that it was ``too distant/off topic''.
+Is it better now? I feel like prefetching was an idea that we considered too
+much to leave out...)
 
 Gupta et al. built an emulator for high speed networks using a technique called
 time dilation, which slows down the OS clock to make it appear that external
 events are occurring faster. This allows the system to emulate network links
-with speeds that are currently not available. The implementation is based on the
-VMs and Xen hypervisor; Xen delivers the timer interrupts to the guest at a
+with speeds that are currently not available. The implementation is based on
+the VMs and Xen hypervisor; Xen delivers the timer interrupts to the guest at a
 lower rate than hardware hence  slowing down the guest’s clock \cite{timedil}.
-We may use a similar approach to slow down system time  while paging in and out
-large portions of memory. This will allow us to make the system believe that it
-is reading data from the memory while actually most of that data is being read
-from the disk.
+A similar approach may be applied for large memory system studies to slow down
+guest time while paging in and out large portions of memory. This will allows
+the system to believe that it is reading data from the memory while actually
+most of that data is being read from the disk.
 
 Finally, there have been studies which look at the performance overheads
 associated with current implementations of virtual memory and suggest mechanisms
@@ -148,15 +177,103 @@ existing memory management schemes are not scalable to larger systems.
 Similarly, in our work, we wish to examine scalability limitations of memory
 management in the Linux kernel. Other studies have suggested that \texttt{struct
 page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
-large portion of memory management overhead \cite{simics}.
+large portion of memory management overhead \cite{simics} (TODO: cite the LWN
+paper).
+
+\section{Background}
+
+In our methodology, we run several experiments to measure the scalability of
+the Linux memory management system. Each experiment is designed to probe a
+different aspect of the system. This section gives some background knowledge
+necessary to understanding the experiments.
+
+\subsection{Virtual Memory Areas}
+
+A process may use the \texttt{mmap} system call to request that the kernel
+allocate part of its virtual address space. Accesses to memory addresses
+outside of allocated regions result in a segmentation fault. This makes memory
+corruption errors easier to find and debug, and increases security from memory
+corruption attacks.
+
+The Linux kernel keeps track of which portions of a process's address space
+have been allocated using the \texttt{vm\_area\_struct}. Because processes may
+map a number of regions, including shared objects, stack, heap, text, and
+anonymous regions, the scalability of this structure is critical to Linux's
+performance.
+
+When a process maps a region, a \texttt{vm\_area\_struct} is created, but no
+memory is allocated. When a process first touches a page, a page fault occurs
+and the processor traps into a page fault handler, which can allocate memory
+and set up a page table entry. This is called demand paging.
+
+For demand paging to work efficiently, the correct \texttt{vm\_area\_struct}
+needs to be efficient to find. Linux caches the most recently used region and
+organizes all regions into a balanced binary tree for fast lookup.  Moreover,
+adjacent regions with similar permissions and properties are merged in an
+effort to keep bookkeeping costs low.
+
+(TODO: explain struct page?)
+
+We measure the memory overhead and latency of the Linux Memory Management
+system's use of \texttt{vm\_area\_struct}, which represents a region of a
+process's virtual address space.  
+We do not measure the overhead of \texttt{struct page} because it is known that
+there is one struct for each physical page. We do not measure the overhead of
+page tables because this can be calculated from the size of the virtual memory
+space used by the process.  When a program makes a memory management system
+calls such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap},
+\texttt{mprotect}, \texttt{mlock}, or \texttt{madvise}, the kernel is creating,
+changing, or removing \texttt{vm\_area\_struct}s; thus, measuring the
+scalability of Linux memory management requires measuring the overhead of these
+structs.
+
+\subsection{Swapping}
+
+Under memory pressure, the kernel may choose to write some pages of memory to
+disk and then free those pages for use. Memory mapped files are written back to
+their backing files, but anonymous memory is written to portion of the disk
+called swap space. We focus on anonymous memory in our experiments.
+
+Before swapping a page out to disk, the kernel must reserve a slot for the page
+in the swap space, unmap it from the process's address space, and record which
+swap slot corresponds to the page.
+
+On Linux, the system may have multiple swap spaces in the form of a swap disk
+partition or of swapfiles on a filesystem. Both have a similar format on disk,
+in which the space is broken into a number of swap slots large enough for one
+page. For each of these swap spaces, the kernel keeps a swap map, which records
+the usage of each swap slot so that it can find and allocate them quickly.
+
+Unmapping a page from a process's address space involves simply marking its page
+table entry ``Not Present''. Rather than using a separate data structure, Linux
+uses the unused page table entry to record information about which swap space
+and slot is used to swap out the page.
+
+\subsection{Page Frame Reclamation}
+
+To determine which pages to swap out, Linux uses the Page Frame Reclamation
+subsystem. Choosing which pages to swap out is important because if the system
+swaps out pages that are about to be used, thrashing may be induced, in which
+the system wastes lots of time swapping out a page just swap it back in.
+
+The Linux Page Frame Reclamation Algorithm (PFRA) attempts to approximate LRU
+order. It uses a clock-like algorithm, in which a list of pages is scanned
+twice. Roughly speaking, if a page is not used between scans, then it is a
+condidate for reclamation.
+
+The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
+intervals and sleeps in between. Also, it may be invoked if the system detects
+that memory has gone below a threshold. kswapd will continue to run until enough
+pages are freed to bring the free memory pool above some threashold. Then,
+kswapd goes back to sleep.  One concern with large memory systems is that kswapd
+may expend significant CPU time scanning through hundreds of thousands of pages.
 
 \section{Methodology}
 
-Our methodology is broken into two parts. First, we measure the scalability of
+We conduct a series of experiments to measure the scalability of various parts
+of the Linux memory management system.  First, we measure the scalability of
 Linux's \texttt{vm\_area\_struct}. Then, we measure the minimum amount of memory
 necessary for swapping.
-
-\subsection{\texttt{vm\_area\_struct} Experiments}
 
 \begin{figure}
 \centering
@@ -172,34 +289,15 @@ Storage & 500GB, 7200RPM \\
 \caption{Specifications of our test machine.  \label{fig:specs}}
 \end{figure}
 
-We measure the memory overhead and latency of the Linux Memory Management
-system's use of \texttt{vm\_area\_struct}, which represents a region of a
-process's virtual address space.  We do not measure the overhead of
-\texttt{struct page} because it is known that there is one struct for each
-physical page. We do not measure the overhead of page tables because this can be
-calculated from the size of the virtual memory space used by the process.  When
-a program makes a memory management system calls such as \texttt{mmap},
-\texttt{mremap}, \texttt{munmap}, \texttt{mprotect}, \texttt{mlock}, or
-\texttt{madvise}, the kernel is creating, changing, or removing
-\texttt{vm\_area\_struct}s; thus, measuring the scalability of Linux memory
-management requires measuring the overhead of these structs.
+The specifications of the machine we used to run our experiments are listed in
+Figure \ref{fig:specs}. We disabled Intel SpeedStep and TurboBoost and ensure
+that the processor frequency stays constant (TODO: did we do this?). All
+experiments are pinned to the same core on our machine. 
 
 We run several different microbenchmarks, each of which has a different memory
 allocation pattern. These benchmarks are designed to stress the memory
-management system in different ways, rather than simulate real workloads. For
-each workload, we measure the latency and increase in memory usage due to each
-operation in the benchmark. Notably, we do not touch the pages that we allocate,
-avoiding both a page fault and the allocation of a back physical page for the
-allocated virtual pages. This allows us to measure just the overhead of memory
-management, as opposed to physical page allocation, swapping, page faults, or
-other overheads.  Each workload contains $2^{20}$ memory management operations.
-
-The specifications of the machine are listed in Figure \ref{fig:specs}. We
-disabled Intel SpeedStep and TurboBoost. All experiments are pinned to the same
-core on our machine. Each benchmark was run 5 times and the results aggregated
-as described below. We reboot the machine when switching to a different
-benchmark, but keep the machine running continually during the runs of the same
-benchmark. Each run is executed in isolation, without any additional processes
+management system in different ways, rather than simulate real workloads. 
+Each run is executed in isolation, without any additional processes
 running beyond services that start when the system is booted and a single ssh
 session. We are careful to avoid opening extra ssh sessions, running screen or
 tmux, or executing extra commands while a benchmark is running, as these may
@@ -208,24 +306,42 @@ impact memory usage, and thus our results.
 We measured latency using the \texttt{rdtsc} instruction provided by x86\_64
 processors, which gives high resolution cycle-level timestamps. We take a
 timestamp before and after each memory management operation in the workload and
-take the difference to get latency. The median latency of each operation is
-reported across all 5 runs.
+take the difference to get latency. (TODO: is this still true?)
 
-To measure memory, we use the procfs's reporting on current memory usage, along
-with the slab allocator's count of active \texttt{vm\_area\_struct}s in the
-system. Measuring kernel memory usage and associating memory usage with
-processes is very difficult. Our methodology assumes that our benchmarks running
-in otherwise idle systems should dominate increases in memory usage.  Thus, we
-compute total memory usage in the system as the total amount of memory less the
-amount of memory used. From this amount, we subtract the resident set size of
-the benchmark process. The result is the memory usage of the rest of the system
-$R$. We denote $R_i$ as the $i$-th measurement of $R$ during a run ($i = 0, 1,
-... 2^{20}$). System memory usage is known to jitter in Linux (TODO: cite). To
-adjust for this jitter, we define $\Delta_i = R_i - R_0$. For each operation, we
-take the median value of $\Delta_i$ across the 5 runs to reduce jitter further.
-This is the value graphed in the figures in this section. $\Delta_i$ represents
-the increase in memory usage due to memory management overheads caused by
-running $i$ memory management operations.
+To measure memory usage, we use the procfs's reporting on current memory usage.
+Where appropriate, we record the slab allocator's count of active
+\texttt{vm\_area\_struct}s in the system. Measuring kernel memory usage and
+associating memory usage with processes is difficult. Our methodology assumes
+that our benchmarks are running in an otherwise idle system and should dominate
+increases in memory usage.  We compute total memory usage by the rest of the
+system as the total amount of memory less the amount of memory used by the
+benchmark.
+
+Finally, we keep transparent huge pages on throughout our experiments, unless
+otherwise specified.
+
+\subsection{\texttt{vm\_area\_struct}}
+
+For each workload, we measure the latency and increase in memory usage due to
+each operation in the benchmark. Notably, we do not touch the pages that we
+allocate, avoiding both a page fault and the allocation of a back physical page
+for the allocated virtual pages. This allows us to measure just the overhead of
+memory management, as opposed to physical page allocation, swapping, page
+faults, or other overheads.  Each workload contains $2^{20}$ memory management
+operations.
+
+Each benchmark was run 5 times and the results aggregated as described below. We
+reboot the machine when switching to a different benchmark, but keep the machine
+running continually during the runs of the same benchmark. 
+
+Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as the
+$i$-th measurement of $R$ during a run ($i = 0, 1, ... 2^{20}$). System memory
+usage is known to jitter in Linux (TODO: cite). To adjust for this jitter, we
+define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
+$\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
+graphed in the figures in this section. $\Delta_i$ represents the increase in
+memory usage due to memory management overheads caused by running $i$ memory
+management operations.
 
 The workloads we measure are
 
@@ -251,29 +367,59 @@ $2^{19} + 2^{18}$ contiguous 4KB blocks. Then, it resizes every other block to
 kernel to find a block it has not touched in over $2^{19}$ operations and move
 it somewhere else.  \end{itemize}
 
-\subsection{Swapping Experiments}
+\subsection{Swapping Memory Overhead}
 
 These experiments are designed to measure the minimum amount of memory needed
 to using swapping.
 
-In this experiment, a single process touches 32GB of virtual memory, leading to
-the actual allocation of physical memory. Notice that 32GB is twice as large as
-the 16GB of physical memory in the test machine, causing Linux to start paging
-after physical memory is exhausted. Also, notice that the Linux kernel will
-reserve some memory for its own operation.
+A single process allocates 18GB of virtual memory space. It then proceeds to
+write one byte of each 4KB page in the region, leading to the actual allocation
+of physical memory. Notice that 18GB exceeds the 16GB of physical memory in the
+test machine, causing Linux to start paging after physical memory is exhausted.
+Also, notice that the Linux kernel will reserve some memory for its own
+operation.
+
+We run this experiment with both a strided access pattern and a random access
+pattern. The stride access pattern simply touches pages in order of increasing
+address. The random access pattern chooses a random address. Both patterns touch
+the same number of addresses.
 
 After each page of virtual memory is touched, the resident set size (RSS; the
 amount of physical memory Linux has allocated to the process) is recorded.  The
 values of RSS are stored in an mlocked array and written to a file after the
 benchmark completes. This prevents the writing of the results from interacting
-with paging.  These RSS values are graphed in our results section.
+with paging. These RSS values are graphed in our results section.
 
-This experiment is repeated with 5 different swapfile sizes to capture the
-impact of swapfile size on swapping overhead.
+Moreover, we measure the latency of each memory store operation to see the
+impact of swapping and virtual memory usage on memory access times.
 
-(TODO: strided access vs random access?)
+We repeat this with 32GB of swap space and 128GB of swap space to see the
+impact of swap space size on the amount of memory the kernel reserves for
+itself, along with the impact on latency.
 
-(TODO: optional: trying pulling out a DIMM??)
+\subsection{kswapd}
+
+These experiments are designed to measure the processing overhead of kswapd when
+the system is under high memory pressure.
+
+A single process allocates 18GB of virtual memory space. It then proceeds to
+write one byte of each 4KB page in the region, leading to the actual allocation
+of physical memory. The process chooses addresses randomly, as in the previous
+set of experiments, inducing the maximum amount of swapping.
+
+In all these experiments, the system is given 32GB of swap space total. We
+measure the impact of physical memory size and transparent huge pages. We run
+four experiments:
+
+\begin{enumerate}
+    \item 1GB physical memory with huge pages enabled
+    \item 16GB physical memory with huge pages enabled
+    \item 1GB physical memory with huge pages disabled
+    \item 16GB physical memory with huge pages disabled
+\end{enumerate}
+
+To run the 1GB memory benchmarks, we hot unplug 15GB using the sysfs in Linux.
+This makes the unplugged memory unusable by the whole system (kernel and user).
 
 \section{Result}
 
