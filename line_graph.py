@@ -24,6 +24,7 @@ for data_file in argv[4:]:
             if len(line.strip()) == 0:
                 continue
 
+            #xs = [float(x)/1E6 for x in line.split()]
             xs = [float(x) for x in line.split()]
 
             data[data_file].append(xs)
@@ -36,6 +37,8 @@ for data_file in data:
             #ys = [x[i] - data[data_file][0][i] for x in data[data_file]]
             # uncomment next line to prevent normalizing to X_0
             ys = [x[i] for x in data[data_file]]
+            #xs = [float(i) / 1E6 for i in range(len(ys))]
+            #line, = plt.plot(xs, ys, label = data_file)
             line, = plt.plot(ys, label = data_file)
             handles.append(line)
 
@@ -49,7 +52,7 @@ plt.xlabel(AXIS_X)
 plt.ylabel(AXIS_Y)
 plt.grid(True)
 
-plt.legend(handles = handles)
+plt.legend(handles = handles, loc='best')
 
 font = {'family' : 'normal',
         'weight' : 'bold',

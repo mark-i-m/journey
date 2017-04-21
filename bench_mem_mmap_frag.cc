@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
     size_t amt = 1 << atoi(argv[1]);
 
-    PatternGenerator pg = get_mmap_cont(4 /* 16KB */, 7 /* RWX */);
+    PatternGenerator pg = get_mmap_cont(1 /* 4KB */, 7 /* RWX */);
     Next next;
 
     std::cout << getkernelmem() << " " 
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    pg = get_mremap_frag(1, 4, 7);
+    pg = get_mremap_frag(2, 4, 7);
 
     for (size_t i = 0; i < amt; i++) {
         next = pg.next();

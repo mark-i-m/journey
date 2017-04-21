@@ -20,10 +20,8 @@ int main(int argc, char **argv) {
 
     size_t amt = 1 << atoi(argv[1]);
 
-    PatternGenerator pg = get_mmap_cont(4 /* 16KB */, 7 /* RWX */);
+    PatternGenerator pg = get_mmap_cont(1 /* 4KB */, 7 /* RWX */);
     Next next;
-
-    double ticks_per_nano = get_ticks_per_nano();  // calibrate rdtsc before measuring
 
     for (size_t i = 0; i < amt; i++) {
         next = pg.next();
@@ -36,7 +34,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    pg = get_mremap_frag(1, 4, 7);
+    pg = get_mremap_frag(2, 4, 7);
 
     for (size_t i = 0; i < amt; i++) {
         next = pg.next();
@@ -49,6 +47,6 @@ int main(int argc, char **argv) {
             std::cerr << "mmap failed: " << strerror(errno) << std::endl;
             return -1;
         }
-        print_interval(cur_start, cur_end, ticks_per_nano);
+        std::cout << (cur_end - cur_start) << std::endl;
     }
 }
