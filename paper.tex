@@ -362,10 +362,8 @@ in order of increasing memory address.
 inside of a $2^{20}$ page region.
 
 \item \textit{Fragmented} (``frag'' for short). This workload first allocates
-$2^{20}$ contiguous 4KB blocks. Then, it resizes every other block to
-16KB. This represents the worst case behavior we could think of. It requires the
-kernel to find a block it has not touched in $2^{20}$ operations and move
-it somewhere else.  
+    $4^{20}$ contiguous 4KB blocks. Then, it resizes every other block to 16KB.
+        The resizing operation, rather than the initial allocation is measured.
 \end{itemize}
 
 \subsection{Swapping Memory Overhead}

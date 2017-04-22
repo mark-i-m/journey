@@ -23,15 +23,12 @@ int main(int argc, char **argv) {
     PatternGenerator pg = get_mmap_cont(1 /* 4KB */, 7 /* RWX */);
     Next next;
 
-    for (size_t i = 0; i < amt; i++) {
-        next = pg.next();
+    next = pg.next();
+    char *addr = (char *)mmap(next.address, amt << 1, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
 
-        char *addr = (char *)mmap(next.address, next.size, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
-
-        if (addr == MAP_FAILED) {
-            std::cerr << "mmap failed: " << strerror(errno) << std::endl;
-            return -1;
-        }
+    if (addr == MAP_FAILED) {
+        std::cerr << "mmap failed: " << strerror(errno) << std::endl;
+        return -1;
     }
 
     pg = get_mremap_frag(2, 4, 7);
