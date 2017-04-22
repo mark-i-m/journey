@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
     next = pg.next();
 
-    char *addr = (char *)mmap(next.address, amt << 1, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
+    char *addr = (char *)mmap(next.address, amt << 12 << 1, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
     if (addr == MAP_FAILED) {
         std::cerr << "mmap failed: " << strerror(errno) << std::endl;
         return -1;
@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
         char *addr = (char *)mremap(next.address, 1 << 12, next.size, MREMAP_MAYMOVE);
         if (addr == MAP_FAILED) {
             std::cerr << "mmap failed: " << strerror(errno) << std::endl;
+            next.print();
             return -1;
         }
         std::cout << getkernelmem() << " " 
