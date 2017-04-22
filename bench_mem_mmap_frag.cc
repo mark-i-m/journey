@@ -19,31 +19,30 @@ int main(int argc, char **argv) {
 
     size_t amt = 1 << atoi(argv[1]);
 
-    PatternGenerator pg = get_mmap_cont(4 /* 16KB */, 7 /* RWX */);
+    PatternGenerator pg = get_mmap_cont(1 /* 4KB */, 7 /* RWX */);
     Next next;
 
     std::cout << getkernelmem() << " " 
               << slabinfo("vm_area_struct") << " " 
               << meminfo("PageTables") << std::endl;
 
-    for (size_t i = 0; i < amt; i++) {
-        next = pg.next();
+    next = pg.next();
 
-        char *addr = (char *)mmap(next.address, next.size, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
-        if (addr == MAP_FAILED) {
-            std::cerr << "mmap failed: " << strerror(errno) << std::endl;
-            return -1;
-        }
+    char *addr = (char *)mmap(next.address, amt << 12 << 1, next.permissions, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (addr == MAP_FAILED) {
+        std::cerr << "mmap failed: " << strerror(errno) << std::endl;
+        return -1;
     }
 
-    pg = get_mremap_frag(1, 4, 7);
+    pg = get_mremap_frag(2, 4, 7);
 
     for (size_t i = 0; i < amt; i++) {
         next = pg.next();
 
-        char *addr = (char *)mremap(next.address, 2 << 12, next.size, MREMAP_MAYMOVE);
+        char *addr = (char *)mremap(next.address, 1 << 12, next.size, MREMAP_MAYMOVE);
         if (addr == MAP_FAILED) {
             std::cerr << "mmap failed: " << strerror(errno) << std::endl;
+            next.print();
             return -1;
         }
         std::cout << getkernelmem() << " " 

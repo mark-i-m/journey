@@ -48,8 +48,6 @@ int main(int argc, char **argv) {
       return -1;
     }
 
-    double ticks_per_nano = get_ticks_per_nano();  // calibrate rdtsc before measuring
-
     for (size_t i = 0; i < amt; i++) {
         unsigned long maddr = START + (offsets[i] << 12);
         unsigned long long cur_start = rdtsc();
@@ -59,7 +57,7 @@ int main(int argc, char **argv) {
             std::cerr << "mmap failed: " << strerror(errno) << std::endl;
             return -1;
         }
-        print_interval(cur_start, cur_end, ticks_per_nano);
+        std::cout << (cur_end - cur_start) << std::endl;
     }
 
     free(offsets);

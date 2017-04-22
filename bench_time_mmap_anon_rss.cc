@@ -13,14 +13,13 @@
 int main(int argc, char **argv) {
     set_cpu(0);
 
-	if (argc < 3) {
-        std::cout << "Usage: ./memusage num_gb pid_of_kswapd0" << std::endl;
+	if (argc < 2) {
+        std::cout << "Usage: ./memusage num_gb" << std::endl;
 		return -1;
 	}
 
 
 	size_t gbs = atoi(argv[1]);
-    int kswapd_pid = atoi(argv[2]);
     uint64_t vma_size = (uint64_t)gbs << 30;
 
     char* start_addr = (char*)mmap(NULL, vma_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
@@ -51,9 +50,6 @@ int main(int argc, char **argv) {
         unsigned long long start = rdtsc();
         *addr = 'X';
         res_array[num_touched++] = rdtsc() - start;
-        if (num_touched % 80000 == 0)  // how to set this number? if this is too short elapsed ~= 0 
-            std::cout << "kswapd cpu util " << get_CPU_usage(kswapd_pid) << std::endl;
-
         addr += PAGE_SIZE;
     }
 
