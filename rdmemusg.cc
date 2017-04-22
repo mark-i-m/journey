@@ -131,31 +131,28 @@ unsigned long get_CPU_usage(int pid) {
     }
 
     buffer[bytes_read] = '\0';
+    close(f);
 
     char* token;
     char** my_tail = NULL;
     token = strtok(buffer, " ");
+
     for (int i = 0; i < 12; i++) {
         token = strtok(NULL, " ");
     }
+    
     token = strtok(NULL, " ");
     unsigned long u_time = strtoul(token, my_tail, 10);
     token = strtok(NULL, " ");
     unsigned long s_time = strtoul(token, my_tail, 10);
 
-
-    close(f);
-    
-    
     unsigned long elapsed_now = get_uptime_jiffies();
     unsigned long elapsed_delta = elapsed_now - elapsed_before;
-
-    
     unsigned long kswapd_total_now = u_time + s_time;
     unsigned long kswapd_delta = kswapd_total_now - kswapd_total_before;
+
     elapsed_before = elapsed_now;
     kswapd_total_before = kswapd_total_now;
-
 
     if (elapsed_delta == 0) return 0;
     unsigned long kswapd_cpu_util = (kswapd_delta / elapsed_delta) * 100;
@@ -179,6 +176,7 @@ unsigned long get_uptime_jiffies() {
         exit(1);
     }
     buffer[bytes_read] = '\0';
+    close(f);
 
     // want to get just the first line
     for (unsigned int i = 0; i < sizeof(buffer); i++) {
@@ -187,7 +185,6 @@ unsigned long get_uptime_jiffies() {
             break;
         }
     }
-    close(f);
 
     char** my_tail = NULL;
     char* token = strtok(buffer, " "); // first token is "cpu" 
@@ -225,7 +222,3 @@ unsigned long get_uptime() {
     unsigned long uptime = strtoul(token, my_tail, 10);
     return uptime; 
 }
-
-
-
-
