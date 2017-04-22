@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     for (size_t i = 0; i < amt; i++) {
         next = pg.next();
 
-        char *addr = (char *)mremap(next.address, 2 << 12, next.size, MREMAP_MAYMOVE);
+        char *addr = (char *)mremap(next.address, 1 << 12, next.size, MREMAP_MAYMOVE);
         if (addr == MAP_FAILED) {
             std::cerr << "mmap failed: " << strerror(errno) << std::endl;
             return -1;

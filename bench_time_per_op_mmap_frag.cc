@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         next = pg.next();
 
         unsigned long long cur_start = rdtsc();
-        char *addr = (char *)mremap(next.address, 2 << 12, next.size, MREMAP_MAYMOVE);
+        char *addr = (char *)mremap(next.address, 1 << 12, next.size, MREMAP_MAYMOVE);
         unsigned long long cur_end = rdtsc();
 
         if (addr == MAP_FAILED) {
