@@ -114,6 +114,51 @@ unsigned long getkernelmem() {
 	return tmem - fmem - pmem;
 }
 
+double get_pid_cpu_usage(int pid) {
+    char file [40];
+    sprintf(file, "/proc/%d/stat", pid);
+
+    char buffer[2048];
+
+	int f = open(file, O_RDONLY);
+	if (f == -1) {
+		fputs("Couldn't open stat file\n", stderr);
+        exit(1);
+	}
+
+    int bytes_read;
+    if ((bytes_read = read(f, buffer, sizeof(buffer) )) < 0) {
+        printf("failed to read stat file \n"); 
+        exit(1);
+    }
+
+    buffer[bytes_read] = '\0';
+
+    char* token;
+    char** my_tail = NULL;
+    token = strtok(buffer, " ");
+
+    for (int i = 0; i < 12; i++) {
+        token = strtok(NULL, " ");
+    }
+    
+    token = strtok(NULL, " ");
+    unsigned long u_time = strtoul(token, my_tail, 10);
+    token = strtok(NULL, " ");
+    unsigned long s_time = strtoul(token, my_tail, 10);
+
+    close(f);
+
+    unsigned long elapsed_delta = get_uptime_jiffies();
+
+    unsigned long kswapd_total_now = u_time + s_time;
+    unsigned long kswapd_delta = kswapd_total_now - kswapd_total_before;
+    kswapd_total_before = kswapd_total_now;
+
+    if (elapsed_delta == 0) return 0;
+    return ((double)kswapd_delta) / ((double) elapsed_delta);
+}
+
 unsigned long get_pid_jiffies(int pid) {
     char file [40];
     sprintf(file, "/proc/%d/stat", pid);
