@@ -432,7 +432,7 @@ of CPU time spent in kswapd.
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
 \begin{figure}
-    \includegraphics[width=\columnwidth]{figures/memory_controled}
+    \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
     \caption{$\Delta_i$ adjusted with control for benchmarks}
 \end{figure}
 
@@ -450,6 +450,15 @@ TODO: time results: HP
 TODO: memory: SPAI
 
 TODO: time: HP/MARKM
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/swap_touch_time_cont_cdf}
+    \caption{CDF Time to touch a page while swapping for continuous benchmark}
+\end{figure}
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/swap_touch_time_rand_cdf}
+    \caption{CDF Time to touch a page while swapping for random benchmark}
+\end{figure}
 
 \subsection{kswapd}
 
