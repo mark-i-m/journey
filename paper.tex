@@ -339,9 +339,9 @@ $i$-th measurement of $R$ during a run ($i = 0, 1, ... 2^{20}$). System memory
 usage is known to jitter in Linux (TODO: cite). To adjust for this jitter, we
 define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
 $\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
-graphed in the figures in this section. $\Delta_i$ represents the increase in
-memory usage due to memory management overheads caused by running $i$ memory
-management operations.
+graphed in the figures in the following section. $\Delta_i$ represents the
+increase in memory usage due to memory management overheads caused by running
+$i$ memory management operations.
 
 The workloads we measure are
 
@@ -431,6 +431,14 @@ of CPU time spent in kswapd.
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
+\subsubsection{Time (TODO: HP)}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/mmap_latency}
+    \caption{Latency of memory operations}
+\end{figure}
+
+\subsubsection{Memory (TODO: SPAI)}
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
     \caption{$\Delta_i$ adjusted with control for benchmarks}
@@ -441,24 +449,43 @@ of CPU time spent in kswapd.
     \caption{Number of \texttt{vm\_area\_struct}s for benchmarks}
 \end{figure}
 
-TODO: memory results: SPAI
-
-TODO: time results: HP
 
 \subsection{Swapping Experiments}
 
-TODO: memory: SPAI
+\subsubsection{Memory (TODO: SPAI)}
 
-TODO: time: HP/MARKM
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/swap_rss}
+    \caption{RSS while touching pages while swapping for random benchmark.}
+\end{figure}
+
+\subsubsection{Time (TODO: HP/MARKM)}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_cont_cdf}
-    \caption{CDF Time to touch a page while swapping for continuous benchmark}
+    \caption{CDF of time to touch a page while swapping for continuous
+    benchmark. Notice that the y-axis scale is from 99.75\% to 100\%.}
 \end{figure}
+
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_rand_cdf}
-    \caption{CDF Time to touch a page while swapping for random benchmark}
+    \caption{CDF of time to touch a page while swapping for random benchmark.
+    Notice that the y-axis scale is from 93\% to 100\%.}
 \end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/swap_time_cont}
+    \caption{Time to touch a page while swapping for continuous benchmark.
+    Notice that the y-scale is logarithmic.}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/swap_time_rand}
+    \caption{Time to touch a page while swapping for random benchmark.}
+\end{figure}
+
+This experiment is designed to measure the impact of swapping on memory
+operation latency. 
 
 \subsection{kswapd}
 
