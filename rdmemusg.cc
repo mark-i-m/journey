@@ -114,7 +114,7 @@ unsigned long getkernelmem() {
 	return tmem - fmem - pmem;
 }
 
-double get_CPU_usage(int pid) {
+unsigned long get_pid_jiffies(int pid) {
     char file [40];
     sprintf(file, "/proc/%d/stat", pid);
 
@@ -148,18 +148,12 @@ double get_CPU_usage(int pid) {
     unsigned long s_time = strtoul(token, my_tail, 10);
 
     close(f);
-    
-    unsigned long elapsed_now = get_uptime_jiffies();
-    unsigned long elapsed_delta = elapsed_now - elapsed_before;
 
     unsigned long kswapd_total_now = u_time + s_time;
     unsigned long kswapd_delta = kswapd_total_now - kswapd_total_before;
-
-    elapsed_before = elapsed_now;
     kswapd_total_before = kswapd_total_now;
 
-    if (elapsed_delta == 0) return 0;
-    return (((double)kswapd_delta) / ((double)elapsed_delta)) * 100.0;
+    return kswapd_delta;
 }
 
 unsigned long get_uptime_jiffies() {
@@ -198,8 +192,11 @@ unsigned long get_uptime_jiffies() {
         total_uptime += strtoul(token, my_tail, 10);
     
     }
-    return total_uptime;
-    
+
+    unsigned long elapsed_delta = total_uptime - elapsed_before;
+    elapsed_before = total_uptime;
+
+    return elapsed_delta;
 }
 
 unsigned long get_uptime() {

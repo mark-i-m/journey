@@ -42,15 +42,21 @@ int main(int argc, char **argv) {
     }
 
     unsigned long long num_pages_mapped = vma_size / PAGE_SIZE;
-    double* res_array = (double*)malloc(num_pages_mapped * sizeof(double));
+    unsigned long* total_jiffies = (unsigned long*)malloc(num_pages_mapped * sizeof(unsigned long));
+    unsigned long* pid_jiffies = (unsigned long*)malloc(num_pages_mapped * sizeof(unsigned long));
 
     // touch all pages
     for(unsigned long i = 0; i < num_pages_mapped; i++) {
-        res_array[i] = 0;
+        total_jiffies[i] = 0;
+        pid_jiffies[i] = 0;
     }
 
     // lock this results array itself so itself is not swapped out
-    if(mlock((const void*) res_array, num_pages_mapped * sizeof(double))) {
+    if(mlock((const void*) total_jiffies, num_pages_mapped * sizeof(double))) {
+        std::cerr << "mlock failed: " << strerror(errno) << std::endl;
+        exit(1);
+    }
+    if(mlock((const void*) pid_jiffies, num_pages_mapped * sizeof(double))) {
         std::cerr << "mlock failed: " << strerror(errno) << std::endl;
         exit(1);
     }
@@ -63,13 +69,13 @@ int main(int argc, char **argv) {
     char* addr = start_addr;
     while (num_touched < num_pages_mapped) {
         *addr = 'X';
-        res_array[num_touched++] = get_CPU_usage(kswapd);
-
+        total_jiffies[num_touched++] = get_uptime_jiffies();
+        pid_jiffies[num_touched++] = get_pid_jiffies(kswapd);
         addr = ((char*)start_addr) + random_number(0, vma_size);
         //printf("%lx\n", (unsigned long)addr);
     }
 
     for (unsigned int i = 0; i < num_pages_mapped; i++) {
-        std::cout << res_array[i] << std::endl;
+        std::cout << total_jiffies[i] << " " << pid_jiffies[i] << std::endl;
     }
 }

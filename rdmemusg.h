@@ -8,9 +8,9 @@ unsigned long getinfo(const char *file, const char *name);
 unsigned long meminfo(const char *name);
 unsigned long statusinfo(const char *name);
 unsigned long slabinfo(const char *name);
-double get_CPU_usage(int);
-unsigned long get_uptime();
+unsigned long get_pid_jiffies(int);
 unsigned long get_uptime_jiffies();
+unsigned long get_uptime();
 
 unsigned long getkernelmem();
 
