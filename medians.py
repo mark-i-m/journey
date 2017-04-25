@@ -28,9 +28,9 @@ for data_file in argv[3:]:
 for row in range(len(data.values()[0])):
     medians_row = []
     for i in WHICH:
-        vals = [data[data_file][row][i] - data[data_file][0][i] for data_file in data]
+        #vals = [data[data_file][row][i] - data[data_file][0][i] for data_file in data]
         # uncomment next line to prevent normalizing to X_0
-        #vals = [data[data_file][row][i] for data_file in data]
+        vals = [data[data_file][row][i] for data_file in data]
         medians_row.append(np.median(vals))
     medians.append(medians_row)
 
