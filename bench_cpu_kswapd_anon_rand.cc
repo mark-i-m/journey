@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     
     // touch all the pages now
     char* addr = start_addr;
-    while (unsigned long num_touched = 0; num_touched < num_pages_mapped; num_touched++) {
+    for (unsigned long num_touched = 0; num_touched < num_pages_mapped; num_touched++) {
         *addr = 'X';
         total_jiffies[num_touched] = get_uptime_jiffies();
         pid_jiffies[num_touched] = get_pid_jiffies(kswapd);
