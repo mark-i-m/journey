@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
     // touch all the pages now
     while (1) {
-        std::cout << get_CPU_usage(kswapd_pid) << std::endl;
+        std::cout << get_pid_cpu_usage(kswapd_pid) << std::endl;
         usleep(500);  // I don't know how to tune this time. It makes a difference. 
     }
 
