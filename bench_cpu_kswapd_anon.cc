@@ -49,16 +49,15 @@ int main(int argc, char **argv) {
     }
     
     // touch all the pages now
-    unsigned long long num_touched = 0;
     char* addr = start_addr;
-    while (num_touched < num_pages_mapped) {
+    while (unsigned long num_touched = 0; num_touched < num_pages_mapped; num_touched++) {
         *addr = 'X';
-        total_jiffies[num_touched++] = get_uptime_jiffies();
-        pid_jiffies[num_touched++] = get_pid_jiffies(kswapd);
+        total_jiffies[num_touched] = get_uptime_jiffies();
+        pid_jiffies[num_touched] = get_pid_jiffies(kswapd);
         addr += PAGE_SIZE;
     }
 
-    for (unsigned int i = 0; i < num_pages_mapped; i++) {
+    for (unsigned long i = 0; i < num_pages_mapped; i++) {
         std::cout << total_jiffies[i] << " " << pid_jiffies[i] << std::endl;
     }
 }
