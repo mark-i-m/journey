@@ -459,33 +459,64 @@ of CPU time spent in kswapd.
     \caption{RSS while touching pages while swapping for random benchmark.}
 \end{figure}
 
-\subsubsection{Time (TODO: HP/MARKM)}
+\subsubsection{Time}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_cont_cdf}
     \caption{CDF of time to touch a page while swapping for continuous
-    benchmark. Notice that the y-axis scale is from 99.75\% to 100\%.}
+    benchmark. Notice that the y-axis scale is from 99.75\% to 100\%.
+    \label{fig:swap_time_cont_cdf}}
 \end{figure}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_rand_cdf}
     \caption{CDF of time to touch a page while swapping for random benchmark.
-    Notice that the y-axis scale is from 93\% to 100\%.}
+    Notice that the y-axis scale is from 93\% to 100\%.\label{fig:swap_time_rand_cdf}}
 \end{figure}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_time_cont}
     \caption{Time to touch a page while swapping for continuous benchmark.
-    Notice that the y-scale is logarithmic.}
+    Notice that the y-scale is logarithmic.\label{fig:swap_time_cont}}
 \end{figure}
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_time_rand}
-    \caption{Time to touch a page while swapping for random benchmark.}
+    \caption{Time to touch a page while swapping for random benchmark.\label{fig:swap_time_rand}}
 \end{figure}
 
 This experiment is designed to measure the impact of swapping on memory
-operation latency. 
+operation latency. Figure \ref{fig:swap_time_cont} and Figure
+\ref{fig:swap_time_rand} show the results.
+
+The overall behavior is as expected. In the random benchmark, as before, all
+memory is exhausted quickly, and the benchmark induces swapping soon after the
+benchmark begins. Many memory accesses thus take milliseconds to complete
+because they require paging in or out, which in turn depends on disk latency.
+Even so, the majority of benchmark run time comes from a minority of accesses.
+Figure \ref{fig:swap_time_rand_cdf} shows that as much as 95\% of memory
+accesses occur on the micro-second scale. Of the remaining 5\%, almost all
+accesses complete in less than 20ms. Moreover, notice that the size of the
+swapfile makes very little difference in this workload because the disk has to
+do random seeks regardless of swapfile size.
+
+The continuous benchmark has more surprising results. Notice that Figure
+\ref{fig:swap_time_cont} has a logarithmic y-scale. The system only begins to
+swap after about 4M operations, as before. Unlike the random benchmark, we see a
+number of operations that take hundreds of milliseconds. Figure
+\ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
+of all accesses done after swapping starts. However, Figure (TODO: figure) shows
+that these few accesses form a majority of run time; they impact performance
+significantly. (TODO: why do they happen).
+
+We also find that in the continuous benchmark, a larger swapfile actually has
+slight more of these slow memory accesses. We believe this has to do with the
+fact that the large swapfile has less disk locality, and so causes more disk
+seeks when paging out.
+
+~\\ \textbf{Conclusions} TODO
+
+Large swapfiles should be created with disk locality or on SSDs.
 
 \subsection{kswapd}
 
