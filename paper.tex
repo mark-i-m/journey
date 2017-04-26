@@ -485,6 +485,12 @@ of CPU time spent in kswapd.
     \caption{Time to touch a page while swapping for random benchmark.\label{fig:swap_time_rand}}
 \end{figure}
 
+\begin{figure}
+    \includegraphics[width=\columnwidth]{figures/swap_time_cdf}
+    \caption{CDF of amount of time spent on operations with a given
+    latency.\label{fig:swap_time_cdf}}
+\end{figure}
+
 This experiment is designed to measure the impact of swapping on memory
 operation latency. Figure \ref{fig:swap_time_cont} and Figure
 \ref{fig:swap_time_rand} show the results.
@@ -505,18 +511,25 @@ The continuous benchmark has more surprising results. Notice that Figure
 swap after about 4M operations, as before. Unlike the random benchmark, we see a
 number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
-of all accesses done after swapping starts. However, Figure (TODO: figure) shows
-that these few accesses form a majority of run time; they impact performance
-significantly. (TODO: why do they happen).
+of all accesses done after swapping starts. However, Figure
+\ref{fig:swap_time_cdf} shows that these few accesses form a majority of run
+time; they impact performance significantly. (TODO: why do they happen?).
 
 We also find that in the continuous benchmark, a larger swapfile actually has
 slight more of these slow memory accesses. We believe this has to do with the
 fact that the large swapfile has less disk locality, and so causes more disk
-seeks when paging out.
+seeks when paging out. Figure \ref{fig:swap_time_cdf} shows that with a larger
+swapfile, the continuous benchmark has a significantly higher number of
+high-latency accesses as compared with the smaller swapfile.
 
-~\\ \textbf{Conclusions} TODO
+~\\ \textbf{Conclusions} 
 
 Large swapfiles should be created with disk locality or on SSDs.
+
+Looking at 99.99-th percentile latencies is important because they can have a
+lot of impact on overall run time.
+
+TODO: what else?
 
 \subsection{kswapd}
 
