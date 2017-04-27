@@ -298,44 +298,49 @@ recorded for each experiment and reported in the next section.
 \subsubsection{Time}
 
 Figure \ref{fig:mmap_latency} shows for various microbenchmarks the time taken
-per mmap operation as it varies with the total amount memory allocate so far in
-the system. As described above, we use rdtsc to find the number of ticks taken
-for the operation and then calibrate rdtsc to conver these ticks into
-microseconds. It can be seen that for continuous mmaps the time is not only the
-lowest but also invariant with the total number of mmaps done so far. This is
-because of two reasons. First, when a continuous mmap (with the same
-permissions) happens the kernel memory allocator does not need create a new vm
-area struct, instead it modifies the adjacent vm area structs to account for the
-newly accommodate memory. This ensures that there is no need to perform the
-lookup on the red black trees that store the vm area sturct so a horizontal line
-is seen. The second important thing to note here is that for continuous mmap
-operations, the time taken is always the lowest compared to other benchmarks.
-This is also a result of expanding the existing vm area sturcts. Since the
-number of vm area structs is very low (actually just 1 for the process in
-question) the required node in the red black tree is always found in the cache.
-For rest of the microbench marks, the kernel has to first search through the
-red-black tree of vm area structs. If it finds a mapping adjacent to the new
-memory allocation to be done, it will extend the existing mapping otherwise it
-will create a new mapping and insert it into the red-black tree. The traversal
-of the tree is an o(long n) operation where n is the number of nodes in the tree
-which in this case are the vm area mappings. This log n shape for the lookup is
-visible in the plots for all the benchmarks in figure \ref{fig:mmap_ latency}.
-The frag mmap benchmark takes the most time because for fragmented mmap, the
-memory is first allocated contiguously and then all allocated regions are
-expanded to a higher size. This operation needs creation of a new memory area
-struct. Therefore, the kernel first looks through the red-black tree but it
-never finds a node which can be expanded to include the current mapping. So it
-always has to create a new mapping after traversing the tree and then inserting
-it in. It also has to delete the old mapping from the red-black tree and then
-rebalnce the tree if necessary. All of these operations result in the worst case
-latency for mmap.  The case of strided mmaps is very similar to frag because it
-will also force the kerenl to always create a new mapping and insert it into the
-tree after traversing the tree first. It however does not need to delete an
-existing mapping so it is faster than the frag benchmark. Finally, rand will
-also search through the red-black tree first but it will sometimes find an
-existing mapping adjacent to the desired mapping which can be expanded obviating
-the need to create a new vm area mapping and inserting it into red-black tree.
-Hence, most of the times it is faster than stride.
+per \texttt{mmap} operation as it varies with the total amount memory allocated
+so far in the workload. 
+
+It can be seen that for continuous \texttt{mmap}s the time is not only the
+lowest but is also invariant with the total number of \texttt{mmap}s done so
+far. There are two reasons for this. 
+
+First, when a continuous \texttt{mmap} (with the same permissions) happens the
+kernel memory allocator does not need to create a new \texttt{vm\_area\_struct},
+instead it modifies the adjacent \texttt{vm\_area\_struct}s to account for the
+newly allocated space. This avoids the need to use the slab allocator to create
+a new struct. 
+
+Second, for continuous \texttt{mmap} operations, the time taken is always the
+lowest compared to other benchmarks.  This is because the kernel caches the most
+recently used \texttt{vm\_area\_struct}, avoiding a red-black tree search. In
+the continuous benchmark, this cached struct is always conveniently used.
+
+For the other workloads, a search through the red-black tree is often needed on
+most accesses. This operation takes $O(log n)$ time (where $n$ is the number of
+virtual memory areas). The logarithmic behavior is visible in the plots for the
+benchmarks in Figure \ref{fig:mmap_latency}.
+
+The frag benchmark takes the most time of any benchmark. When a region of the
+address space is being expanded, the kernel is forced to unmap it and map a new
+area somewhere else.  This operation needs creation of a new memory area struct.
+The kernel also must look through the red-black tree, though it never finds a
+node which can be expanded to include the new mapping. Then, an insertion on the
+tree is needed, possibly including rebalancing.
+
+The strided workload is very similar to frag because it will also force the
+kerenl to always create a new mapping and insert it into the tree after
+traversing the tree first. It, however, does not need to delete an existing
+mapping so it is faster than the frag benchmark. 
+
+Finally, rand will also search through the red-black tree first but there is a
+reasonably high probability that it will find an existing mapping adjacent to
+the desired mapping which can be expanded, obviating the need to create a new
+struct and insert it into red-black tree.
+
+~\\ \textbf{Conclusions}
+
+TODO?
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/mmap_latency}
@@ -347,18 +352,18 @@ Hence, most of the times it is faster than stride.
 Figure \ref{fig:mmap_mem_usage} shows the growth in memory usage of the system
 for the workloads described in section \ref{ss_vm_area_struct}. The
 \texttt{cont} workload coincides with the \texttt{control} workload as only the
-first mmap operation allocates a \texttt{vm\_area\_struct}. The subsequent
+first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. The subsequent
 operations are subsumed by the initial \texttt{vm\_area\_struct} as the mapped
 regions are adjacent, and hence the memory usage does not increase despite the
-large number of mmap operations.  The \texttt{stride} workload allocates a
+large number of \texttt{mmap} operations.  The \texttt{stride} workload allocates a
 \texttt{vm\_area\_struct} for each operation due to the separation of
 allocations in the virtual address space. As a result, the memory usage
-increases significantly as more memory is consumed with each mmap operation.
+increases significantly as more memory is consumed with each \texttt{mmap} operation.
 This is also the case for the \texttt{rand} workload which breaks up a single
 \texttt{vm\_area\_struct} for a large area in the virtual address space into
 multiple smaller areas, which results in the  allocation of a new structure for
 every resize operation. The \texttt{rand} workload initially creates a new
-\texttt{vm\_area\_struct} struct for each mmap operation. Eventually, these
+\texttt{vm\_area\_struct} struct for each \texttt{mmap} operation. Eventually, these
 allocations form larger contiguous allocations when two or more regions are
 mapped next to each other, resulting in a single \texttt{vm\_area\_struct} being
 used for that range. As a result, the memory usage begins to flatten out and
