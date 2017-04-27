@@ -427,7 +427,7 @@ to get the total time allocated to kswapd. Then, the \texttt{/proc/stat} file is
 read to get the total system time elapsed. By dividing, we can find the portion
 of CPU time spent in kswapd.
 
-\section{Result}
+\section{Results}
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
@@ -514,7 +514,8 @@ it is faster than stride.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_time_rand}
-    \caption{Time to touch a page while swapping for random benchmark.\label{fig:swap_time_rand}}
+    \caption{Time to touch a page while swapping for random
+    benchmark.\label{fig:swap_time_rand}}
 \end{figure}
 
 \begin{figure}
