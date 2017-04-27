@@ -123,6 +123,8 @@ table entry ``Not Present''. Rather than using a separate data structure, Linux
 uses the unused page table entry to record information about which swap space
 and slot is used to swap out the page.
 
+(TODO: swapping large pages?)
+
 \subsection{Page Frame Reclamation}
 
 To determine which pages to swap out, Linux uses the Page Frame Reclamation
@@ -146,18 +148,18 @@ may expend significant CPU time scanning through hundreds of thousands of pages.
 
 We conduct a series of experiments to measure the scalability of various parts
 of the Linux memory management system.  First, we measure the scalability of
-Linux's \texttt{vm\_area\_struct}. Then, we measure the minimum amount of memory
-necessary for swapping.
+Linux's \texttt{vm\_area\_struct}. Then, we measure the scalability of Linux's
+swapping mechanisms.
 
 \begin{figure}
 \centering
 \begin{tabular}{|l|p{5cm}|} \hline
 OS & Ubuntu 16.04.2 \\ \hline
 Kernel & Linux 4.4.0-70 \\ \hline
-CPU & Intel Xeon E5645, 2.40 GHz, 6 cores/12 threads, 384KB Private L1-I Cache,
-1.536 Unified L2 Cache, 12MB Shared L3 Cache \\ \hline
+CPU & Intel Xeon E5645, 2.40 GHz, 6 cores/12 threads, 32kB L1-D, 32kB L1-I,
+    256kB L2, 12MB L3 \\ \hline
 Memory & 16GB, 1066MHz \\ \hline
-Storage & 500GB, 7200RPM \\
+Storage & 500GB HDD, 7200RPM \\
 \hline
 \end{tabular}
 \caption{Specifications of our test machine.  \label{fig:specs}}
@@ -165,8 +167,8 @@ Storage & 500GB, 7200RPM \\
 
 The specifications of the machine we used to run our experiments are listed in
 Figure \ref{fig:specs}. We disabled Intel SpeedStep and TurboBoost and ensure
-that the processor frequency stays constant (TODO: did we do this?). All
-experiments are pinned to the same core on our machine. 
+that the processor frequency stays constant. All experiments are pinned to the
+same core on our machine. 
 
 We run several different microbenchmarks, each of which has a different memory
 allocation pattern. These benchmarks are designed to stress the memory
@@ -174,13 +176,13 @@ management system in different ways, rather than simulate real workloads.
 Each run is executed in isolation, without any additional processes
 running beyond services that start when the system is booted and a single ssh
 session. We are careful to avoid opening extra ssh sessions, running screen or
-tmux, or executing extra commands while a benchmark is running, as these may
-impact memory usage, and thus our results.
+tmux, or executing extra commands while a benchmark is running since these may
+impact memory usage and, thus, our results.
 
 We measured latency using the \texttt{rdtsc} instruction provided by x86\_64
 processors, which gives high resolution cycle-level timestamps. We take a
 timestamp before and after each memory management operation in the workload and
-take the difference to get latency. (TODO: is this still true?)
+take the difference to get latency.
 
 To measure memory usage, we use the procfs's reporting on current memory usage.
 Where appropriate, we record the slab allocator's count of active
@@ -189,10 +191,12 @@ associating memory usage with processes is difficult. Our methodology assumes
 that our benchmarks are running in an otherwise idle system and should dominate
 increases in memory usage.  We compute total memory usage by the rest of the
 system as the total amount of memory less the amount of memory used by the
-benchmark.
-
-Finally, we keep transparent huge pages on throughout our experiments, unless
+benchmark. We keep transparent huge pages on throughout our experiments, unless
 otherwise specified.
+
+To measure processor usage, we use the procfs's reporting on number of jiffies.
+\texttt{/proc/stat} reports the number of jiffies of uptime the system has seen
+overall, while \texttt{/proc/[pid]/stat} reports on the specified process.
 
 \subsection{\texttt{vm\_area\_struct}}
 \label{ss_vm_area_struct}
@@ -210,7 +214,7 @@ reboot the machine when switching to a different benchmark, but keep the machine
 running continually during the runs of the same benchmark. 
 
 Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as the
-$i$-th measurement of $R$ during a run ($i = 0, 1, ... 2^{20}$). System memory
+$i$-th measurement of $R$ during a run ($i = 0, 1, ..., 2^{20}$). System memory
 usage is known to jitter in Linux (TODO: cite). To adjust for this jitter, we
 define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
 $\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
@@ -237,7 +241,7 @@ in order of increasing memory address.
 inside of a $2^{20}$ page region.
 
 \item \textit{Fragmented} (``frag'' for short). This workload first allocates
-    $4^{20}$ contiguous 4KB blocks. Then, it resizes every other block to 16KB.
+    $2^{21}$ contiguous 4KB blocks. Then, it resizes every other block to 16KB.
         The resizing operation, rather than the initial allocation is measured.
 \end{itemize}
 
@@ -254,16 +258,17 @@ test machine, causing Linux to start paging after physical memory is exhausted.
 Also, notice that the Linux kernel will reserve some memory for its own
 operation.
 
-We run this experiment with both a strided access pattern and a random access
-pattern. The stride access pattern simply touches pages in order of increasing
-address. The random access pattern chooses a random address. Both patterns touch
-the same number of addresses.
+We run this experiment with both a continuous access pattern and a random access
+pattern. The continuous access pattern simply touches adjacent pages in order of
+increasing address. The random access pattern chooses a random address. Both
+patterns touch the same number of addresses.
 
 After each page of virtual memory is touched, the resident set size (RSS; the
 amount of physical memory Linux has allocated to the process) is recorded.  The
 values of RSS are stored in an mlocked array and written to a file after the
 benchmark completes. This prevents the writing of the results from interacting
-with paging. These RSS values are graphed in our results section.
+with paging in the kernel page cache. These RSS values are graphed in our
+results section.
 
 Moreover, we measure the latency of each memory store operation to see the
 impact of swapping and virtual memory usage on memory access times.
@@ -277,31 +282,14 @@ itself, along with the impact on latency.
 These experiments are designed to measure the processing overhead of kswapd when
 the system is under high memory pressure.
 
-A single process allocates 18GB of virtual memory space. It then proceeds to
-write one byte of each 4KB page in the region, leading to the actual allocation
-of physical memory. The process chooses addresses randomly, as in the previous
-set of experiments, inducing the maximum amount of swapping.
+A single process allocates 18GB of virtual memory space and writes one byte of
+each 4KB page in the region. The same two access patterns are tested as in the
+previous set of experiments (continuous and random).
 
 In all these experiments, the system is given 32GB of swap space total. We
-measure the impact of physical memory size and transparent huge pages. We run
-four experiments:
-
-\begin{enumerate}
-    \item 1GB physical memory with huge pages enabled
-    \item 16GB physical memory with huge pages enabled
-    \item 1GB physical memory with huge pages disabled
-    \item 16GB physical memory with huge pages disabled
-\end{enumerate}
-
-To run the 1GB memory benchmarks, we hot unplug 15GB using the sysfs in Linux.
-This makes the unplugged memory unusable by the whole system (kernel and user).
-
-We measure CPU time via the procfs using the same methodology as the
-\texttt{top} utility. The \texttt{/proc/[pid]/stat} file for kswapd is read.
-From this file the \texttt{utime} and \texttt{stime} fields are read and summed
-to get the total time allocated to kswapd. Then, the \texttt{/proc/stat} file is
-read to get the total system time elapsed. By dividing, we can find the portion
-of CPU time spent in kswapd.
+repeat each experiment with hugepages enabled and disabled to see the impact of
+the transparent hugepage system. The processor usage of kswapd and khugepaged is
+recorded for each experiment and reported in the next section.
 
 \section{Results}
 
@@ -491,6 +479,8 @@ TODO: what else?
 \subsection{kswapd}
 
 TODO: time: MARKM
+
+TODO: khugepaged?
 
 
 \section{Related Work}
