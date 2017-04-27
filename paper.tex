@@ -481,8 +481,8 @@ Hence, most of the times it is faster than stride.
 \end{figure}
 
 \subsubsection{Memory}
-Figure \ref{fig:mmap\_mem\_usage} shows the growth in memory usage of the system
-for the workloads described in section \ref{ss\_vm\_area\_struct}. The
+Figure \ref{fig:mmap_mem_usage} shows the growth in memory usage of the system
+for the workloads described in section \ref{ss_vm_area_struct}. The
 \texttt{cont} workload coincides with the \texttt{control} workload as only the
 first mmap operation allocates a \texttt{vm\_area\_struct}. The subsequent
 operations are subsumed by the initial \texttt{vm\_area\_struct} as the mapped
