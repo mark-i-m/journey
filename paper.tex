@@ -293,6 +293,9 @@ recorded for each experiment and reported in the next section.
 
 \section{Results}
 
+(TODO: we need to be consistent with whether we texttt the benchmark names or
+not)
+
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
 \subsubsection{Time}
@@ -350,26 +353,38 @@ TODO?
 
 \subsubsection{Memory}
 Figure \ref{fig:mmap_mem_usage} shows the growth in memory usage of the system
-for the workloads described in section \ref{ss_vm_area_struct}. The
-\texttt{cont} workload coincides with the \texttt{control} workload as only the
+for the workloads described in section \ref{ss_vm_area_struct}. 
+
+The
+\texttt{cont} workload coincides with the \texttt{control} workload, as only the
 first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. The subsequent
-operations are subsumed by the initial \texttt{vm\_area\_struct} as the mapped
+operations are subsumed by the initial \texttt{vm\_area\_struct} because the mapped
 regions are adjacent, and hence the memory usage does not increase despite the
-large number of \texttt{mmap} operations.  The \texttt{stride} workload allocates a
+large number of \texttt{mmap} operations.  
+
+The \texttt{stride} workload allocates a
 \texttt{vm\_area\_struct} for each operation due to the separation of
 allocations in the virtual address space. As a result, the memory usage
 increases significantly as more memory is consumed with each \texttt{mmap} operation.
-This is also the case for the \texttt{rand} workload which breaks up a single
+
+This is also the case for the \texttt{frag} workload which breaks up a single
 \texttt{vm\_area\_struct} for a large area in the virtual address space into
-multiple smaller areas, which results in the  allocation of a new structure for
-every resize operation. The \texttt{rand} workload initially creates a new
+multiple smaller areas, which results in the allocation of a new structure for
+every resize operation. 
+
+The \texttt{rand} workload initially creates a new
 \texttt{vm\_area\_struct} struct for each \texttt{mmap} operation. Eventually, these
 allocations form larger contiguous allocations when two or more regions are
 mapped next to each other, resulting in a single \texttt{vm\_area\_struct} being
-used for that range. As a result, the memory usage begins to flatten out and
+used for that range. As a result, the memory usage begins to taper off and
 even decreases slightly as multiple \texttt{vm\_area\_struct}s are collapsed to
 single structures. This is made clear by Figure \ref{fig:vm_area_struct_count}
 which shows the growth \texttt{vm\_area\_struct} counts for each workload.
+
+~\\ \textbf{Conclusions}
+
+TODO
+
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
     \caption{$\Delta_i$ adjusted with control for benchmarks}
@@ -386,21 +401,30 @@ which shows the growth \texttt{vm\_area\_struct} counts for each workload.
 \subsection{Swapping Experiments}
 
 \subsubsection{Memory}
-Figure \ref{fig:swap_rss} shows the Resident Set Size of the system for the
-experiments described in section \ref{swapping_memory_overhead}. The
-\texttt{cont} workloads write to  adjacent 4KB pages in the address space. A
-huge page of size 2MB is allocated (TODO: Is it 2MB?) when a new page is touched
+
+Figure \ref{fig:swap_rss} shows the RSS of each workload for the
+experiments described in section \ref{swapping_memory_overhead}. 
+
+The
+cont workloads write to  adjacent 4KB pages in the address space. A
+huge page of size 2MB is allocated when a new page is touched
 initially. Subsequent 4KB pages that are touched are subpages of the 2MB page
 allocated initially. As a result, the memory used by the workload is almost
 equal to the amount of memory it has written to. The RSS thus increases linearly
 until the system begins to swap when the number of free pages falls below a
-threshold. The \texttt{rand} workload on the other hand writes to pages that are
-not adjacent, and likely not subpages of a single huge page. As a result, a huge
-page is allocated with almost every write, and the system starts to exhaust its
-memory and begins swapping very quickly. Memory made available by kswapd is
-quickly consumed by further writes and hence the memory used by the workload
+threshold. 
+
+The rand workload, on the other hand, writes to pages that are likely
+not adjacent and likely not subpages of a single huge page. As a result, a huge
+page is allocated with almost every write, and system memory is exhausted and
+begins swapping very quickly. Memory made available by kswapd is
+quickly consumed by further allocations. Hence, the memory used by the workload
 continues to stay close to its peak value. As expected, the behavior is the same
-irrespective of the size of the swap file.
+irrespective of the size of the swapfile.
+
+~\\ \textbf{Conclusions} 
+
+TODO
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_rss}
