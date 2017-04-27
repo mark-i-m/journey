@@ -390,7 +390,15 @@ which shows the growth \texttt{vm\_area\_struct} counts for each workload.
 
 ~\\ \textbf{Conclusions}
 
-TODO
+The memory overhead of \texttt{vm\_area\_struct}s increases linearly with the
+number of mapped regions when these regions are separated by unused memory
+addresses. When a workload maps a large number of regions, this overhead can be
+of the order of hundreds of megabytes to gigabytes for large memory systems.  To
+reduce this overhead, it is crucial that regions with similar access permissions
+are placed adjacently in the address space so that they can be identified by a
+single structure. It is important for large applications such as object-oriented
+databases that map a large number of regions (TODO: Cite Linux book. Should we
+mention this?)to be aware of these overheads and mitigate them.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
@@ -412,26 +420,31 @@ TODO
 Figure \ref{fig:swap_rss} shows the RSS of each workload for the
 experiments described in section \ref{swapping_memory_overhead}. 
 
-The
-cont workloads write to  adjacent 4KB pages in the address space. A
-huge page of size 2MB is allocated when a new page is touched
-initially. Subsequent 4KB pages that are touched are subpages of the 2MB page
-allocated initially. As a result, the memory used by the workload is almost
-equal to the amount of memory it has written to. The RSS thus increases linearly
-until the system begins to swap when the number of free pages falls below a
-threshold. 
+The cont workloads write to adjacent 4KB pages in the address space. A huge page
+of size 2MB is allocated when a new page is touched initially. Subsequent 4KB
+pages that are touched are subpages of the 2MB page allocated initially. As a
+result, the memory used by the workload is almost equal to the amount of memory
+it has written to. The RSS thus increases linearly until the system begins to
+swap when the number of free pages falls below a threshold. 
 
-The rand workload, on the other hand, writes to pages that are likely
-not adjacent and likely not subpages of a single huge page. As a result, a huge
-page is allocated with almost every write, and system memory is exhausted and
-begins swapping very quickly. Memory made available by kswapd is
-quickly consumed by further allocations. Hence, the memory used by the workload
-continues to stay close to its peak value. As expected, the behavior is the same
-irrespective of the size of the swapfile.
+The rand workload, on the other hand, writes to pages that are likely not
+adjacent and likely not subpages of a single huge page. As a result, a huge page
+is allocated with almost every write, and system memory is exhausted and begins
+swapping very quickly. Memory made available by kswapd is quickly consumed by
+further allocations. Hence, the memory used by the workload continues to stay
+close to its peak value. As expected, the behavior is the same irrespective of
+the size of the swapfile.
 
 ~\\ \textbf{Conclusions} 
 
-TODO
+Transparent huge pages can consume a large fraction of memory and lead to early
+onset of memory pressure when the workload accesses many pages that are
+separated in its address space. The overhead of swapping greatly exceeds the
+performance benefits provided by huge pages. As a result, the workload
+performance can fall drastically in such cases. It might be advisable to
+disable transparent huge pages for such applications. The kernel can also be
+cautious and limit the allocation of huge pages to processes in order to
+prevent early onset of memory pressure.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_rss}
