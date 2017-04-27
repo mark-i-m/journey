@@ -368,6 +368,7 @@ inside of a $2^{20}$ page region.
 \end{itemize}
 
 \subsection{Swapping Memory Overhead}
+\label{swapping_memory_overhead}
 
 These experiments are designed to measure the minimum amount of memory needed
 to using swapping.
@@ -517,11 +518,27 @@ which shows the growth \texttt{vm\_area\_struct} counts for each workload.
 
 \subsection{Swapping Experiments}
 
-\subsubsection{Memory (TODO: SPAI)}
+\subsubsection{Memory}
+Figure \ref{fig:swap_rss} shows the Resident Set Size of the system for the
+experiments described in section \ref{swapping_memory_overhead}. The
+\texttt{cont} workloads write to  adjacent 4KB pages in the address space. A
+huge page of size 2MB is allocated (TODO: Is it 2MB?) when a new page is touched
+initially. Subsequent 4KB pages that are touched are subpages of the 2MB page
+allocated initially. As a result, the memory used by the workload is almost
+equal to the amount of memory it has written to. The RSS thus increases linearly
+until the system begins to swap when the number of free pages falls below a
+threshold. The \texttt{rand} workload on the other hand writes to pages that are
+not adjacent, and likely not subpages of a single huge page. As a result, a huge
+page is allocated with almost every write, and the system starts to exhaust its
+memory and begins swapping very quickly. Memory made available by kswapd is
+quickly consumed by further writes and hence the memory used by the workload
+continues to stay close to its peak value. As expected, the behavior is the same
+irrespective of the size of the swap file.
 
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/swap_rss}
     \caption{RSS while touching pages while swapping for random benchmark.}
+    \label{swap_rss}
 \end{figure}
 
 \subsubsection{Time}
