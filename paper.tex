@@ -4,7 +4,7 @@
 \usepackage{caption}
 \usepackage{graphicx}
 
-\title{Journey: A Study in Unhelpful Titles (TODO: should we get a new title?)}
+\title{Journey: A Study of Scalabilty of Memory Management in Linux (TODO: should we get a new title?)}
 \author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada\\\texttt{\{markm, hp, spai\}@cs.wisc.edu}}
 \date{}
 
@@ -70,36 +70,34 @@ corruption errors easier to find and debug, and increases security from memory
 corruption attacks.
 
 The Linux kernel keeps track of which portions of a process's address space
-have been allocated using the \texttt{vm\_area\_struct}. Because processes may
-map a number of regions, including shared objects, stack, heap, text, and
-anonymous regions, the scalability of this structure is critical to Linux's
-performance.
+have been allocated using the \texttt{vm\_area\_struct} data structure. Because
+processes may map a number of regions, including shared objects, stack, heap,
+text, and anonymous regions, the scalability of this structure is critical to
+Linux's performance.
 
 When a process maps a region, a \texttt{vm\_area\_struct} is created, but no
 memory is allocated. When a process first touches a page, a page fault occurs
-and the processor traps into a page fault handler, which can allocate memory
-and set up a page table entry. This is called demand paging.
+and the processor traps to a page fault handler, which allocates memory and
+sets up a page table entry for a valid access. This is called demand paging.
 
 For demand paging to work efficiently, the correct \texttt{vm\_area\_struct}
 needs to be efficient to find. Linux caches the most recently used region and
-organizes all regions into a balanced binary tree for fast lookup.  Moreover,
+organizes all regions into a red-black tree for fast lookup.  Moreover,
 adjacent regions with similar permissions and properties are merged in an
 effort to keep bookkeeping costs low.
 
-(TODO: explain struct page?)
-
 We measure the memory overhead and latency of the Linux Memory Management
 system's use of \texttt{vm\_area\_struct}, which represents a region of a
-process's virtual address space.  
-We do not measure the overhead of \texttt{struct page} because it is known that
-there is one struct for each physical page. We do not measure the overhead of
-page tables because this can be calculated from the size of the virtual memory
-space used by the process.  When a program makes a memory management system
-calls such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap},
-\texttt{mprotect}, \texttt{mlock}, or \texttt{madvise}, the kernel is creating,
-changing, or removing \texttt{vm\_area\_struct}s; thus, measuring the
-scalability of Linux memory management requires measuring the overhead of these
-structs.
+process's virtual address space. All the physical pages in the system are
+managed using the \texttt{struct page} descriptors in the kernel.  We do not
+measure the overhead of \texttt{struct page} because it is known that there is
+one struct for each physical page. We do not measure the overhead of page
+tables because this can be calculated from the size of the virtual memory space
+used by the process.  When a program makes a memory management system calls
+such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap}, \texttt{mprotect},
+\texttt{mlock}, or \texttt{madvise}, the kernel is creating, changing, or
+removing \texttt{vm\_area\_struct}s; thus, measuring the scalability of Linux
+memory management requires measuring the overhead of these structs.
 
 \subsection{Swapping}
 
@@ -313,15 +311,16 @@ lowest but is also invariant with the total number of \texttt{mmap}s done so
 far. There are two reasons for this. 
 
 First, when a continuous \texttt{mmap} (with the same permissions) happens the
-kernel memory allocator does not need to create a new \texttt{vm\_area\_struct},
-instead it modifies the adjacent \texttt{vm\_area\_struct}s to account for the
+kernel memory allocator does not need to create a new \texttt{vm\_area\_struct}.
+Instead, it uses the existing \texttt{vm\_area\_struct} to account for the
 newly allocated space. This obviates the need to use the slab allocator to create
 a new struct. 
 
 Second, for continuous \texttt{mmap} operations, the time taken is always the
-lowest compared to other benchmarks.  This is because the kernel caches the most
-recently used \texttt{vm\_area\_struct}, avoiding a red-black tree search. In
-the continuous benchmark, this cached struct is always conveniently used.
+lowest compared to other benchmarks.  This is because the kernel caches the
+most recently used \texttt{vm\_area\_struct}, avoiding a search in the
+red-black tree. In the continuous benchmark, this cached struct is always
+conveniently used.
 
 For the other workloads, a search through the red-black tree is often needed on
 most accesses. This operation takes $O(log n)$ time (where $n$ is the number of
@@ -330,23 +329,24 @@ benchmarks in Figure \ref{fig:mmap_latency}.
 
 The frag benchmark takes the most time of any benchmark. When a region of the
 address space is being expanded, the kernel is forced to unmap it and map a new
-area somewhere else.  This operation needs creation of a new memory area struct.
-The kernel also must look through the red-black tree, though it never finds a
-node which can be expanded to include the new mapping. Then, an insertion on the
-tree is needed, possibly including rebalancing. Moreover, the exisiting texttt{
-vm\_area\_struct} might need to be deleted and removed from the tree. All of these
-operations ensure that frag mmap pattern takes the most amount of time. 
+area elsewhere in the address space. This operation needs creation of a new
+\texttt{vm\_area\_struct}.  The kernel also must search through the red-black
+tree, though it never finds a node which can be expanded to include the new
+mapping. Then, an insertion on the tree is needed, possibly including
+rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} might need to be
+deleted and removed from the tree. All of these operations ensure that frag
+mmap pattern takes the most amount of time.
 
 The strided workload is very similar to frag because it will also force the
-kerenl to always create a new mapping and insert it into the tree after
-traversing the tree first. It, however, does not need to delete an existing
-mapping so it is faster than the frag benchmark. 
+kernel to always create a new structure and insert it into the tree after
+traversing the tree first. However, it does not need to delete an existing
+structure, because of which, it is faster than the frag benchmark.
 
-Finally, rand will also search through the red-black tree first but there is a
-reasonably high probability that it will find an existing mapping adjacent to
-the desired mapping which can be expanded, obviating the need to create a new
-struct and insert it into red-black tree. Therefore, most of the times the time 
-taken by rand benchmark is lower than strided. 
+Finally, the rand workload will also search through the red-black tree first,
+but there is a reasonably high probability that it will find an existing
+mapping adjacent to the desired mapping which can be expanded, obviating the
+need to create a new struct and insert it into red-black tree. Therefore, most
+of the times the time taken by rand benchmark is lower than strided.
 
 ~\\ \textbf{Conclusions}
 
@@ -492,12 +492,12 @@ operation latency. Figure \ref{fig:swap_time_cont} and Figure
 The overall behavior is as expected. In the random benchmark, as before, all
 memory is exhausted quickly, and the benchmark induces swapping soon after the
 benchmark begins. Many memory accesses thus take milliseconds to complete
-because they require paging in or out, which in turn depends on disk latency.
+because they require paging in or out, which is slow due to disk access.
 Even so, the majority of benchmark run time comes from a minority of accesses.
 Figure \ref{fig:swap_time_rand_cdf} shows that as much as 95\% of memory
 accesses occur on the micro-second scale. Of the remaining 5\%, almost all
 accesses complete in less than 20ms. Moreover, notice that the size of the
-swapfile makes very little difference in this workload because the disk has to
+swap file makes very little difference in this workload because the disk has to
 do random seeks regardless of swapfile size.
 
 The continuous benchmark has more surprising results. Notice that Figure
@@ -509,19 +509,19 @@ of all accesses done after swapping starts. However, Figure
 \ref{fig:swap_time_cdf} shows that these few accesses form a majority of run
 time; they impact performance significantly. (TODO: why do they happen?).
 
-We also find that in the continuous benchmark, a larger swapfile actually has
-slight more of these slow memory accesses. We believe this has to do with the
+We also find that in the continuous benchmark, a larger swap file actually has
+slightly more of these slow memory accesses. We believe this has to do with the
 fact that the large swapfile has less disk locality, and so causes more disk
 seeks when paging out. Figure \ref{fig:swap_time_cdf} shows that with a larger
-swapfile, the continuous benchmark has a significantly higher number of
-high-latency accesses as compared with the smaller swapfile.
+swap file, the continuous benchmark has a significantly higher number of
+high-latency accesses as compared with the smaller swap file.
 
 ~\\ \textbf{Conclusions} 
 
-Large swapfiles should be created with disk locality or on SSDs.
+Large swap files should be created with disk locality or on SSDs.
 
 Looking at 99.99-th percentile latencies is important because they can have a
-lot of impact on overall run time.
+large impact on overall run time.
 
 TODO: what else?
 
