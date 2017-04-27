@@ -304,9 +304,9 @@ not)
 
 \subsubsection{Time}
 
-Figure \ref{fig:mmap_latency} shows for various microbenchmarks the time taken
+Figure \ref{fig:mmap_latency} shows for various microbenchmarks, the time taken
 per \texttt{mmap} operation as it varies with the total amount memory allocated
-so far in the workload. 
+so far by the system. 
 
 It can be seen that for continuous \texttt{mmap}s the time is not only the
 lowest but is also invariant with the total number of \texttt{mmap}s done so
@@ -315,7 +315,7 @@ far. There are two reasons for this.
 First, when a continuous \texttt{mmap} (with the same permissions) happens the
 kernel memory allocator does not need to create a new \texttt{vm\_area\_struct},
 instead it modifies the adjacent \texttt{vm\_area\_struct}s to account for the
-newly allocated space. This avoids the need to use the slab allocator to create
+newly allocated space. This obviates the need to use the slab allocator to create
 a new struct. 
 
 Second, for continuous \texttt{mmap} operations, the time taken is always the
@@ -333,7 +333,9 @@ address space is being expanded, the kernel is forced to unmap it and map a new
 area somewhere else.  This operation needs creation of a new memory area struct.
 The kernel also must look through the red-black tree, though it never finds a
 node which can be expanded to include the new mapping. Then, an insertion on the
-tree is needed, possibly including rebalancing.
+tree is needed, possibly including rebalancing. Moreover, the exisiting texttt{
+vm\_area\_struct} might need to be deleted and removed from the tree. All of these
+operations ensure that frag mmap pattern takes the most amount of time. 
 
 The strided workload is very similar to frag because it will also force the
 kerenl to always create a new mapping and insert it into the tree after
@@ -343,7 +345,8 @@ mapping so it is faster than the frag benchmark.
 Finally, rand will also search through the red-black tree first but there is a
 reasonably high probability that it will find an existing mapping adjacent to
 the desired mapping which can be expanded, obviating the need to create a new
-struct and insert it into red-black tree.
+struct and insert it into red-black tree. Therefore, most of the times the time 
+taken by rand benchmark is lower than strided. 
 
 ~\\ \textbf{Conclusions}
 
