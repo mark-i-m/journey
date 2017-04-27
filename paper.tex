@@ -123,10 +123,11 @@ table entry ``Not Present''. Rather than using a separate data structure, Linux
 uses the unused page table entry to record information about which swap space
 and slot is used to swap out the page.
 
-When a system uses huge pages and is low on memory, they are not swapped as is.
-The huge pages are broken down to their component small pages, which are then
-swapped to disk. This is done to prevent complication of the swapping logic in
-the kernel, but results in additional overheads. \cite{corbet_transparent}
+On systems with transparent hugepages enabled, huge pages are not swapped out in
+one piece.  They are broken down to their component small pages, which are then
+swapped to disk via the normal mechanisms. This is done to simplify the swapping
+logic in the kernel, but results in additional overheads
+\cite{corbet_transparent}.
 
 \subsection{Page Frame Reclamation}
 
