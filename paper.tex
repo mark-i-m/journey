@@ -433,9 +433,21 @@ of CPU time spent in kswapd.
 
 \subsubsection{Time (TODO: HP)}
 
+Figure \ref{fig:mmap_latency} shows for various microbenchmarks the time taken per mmap operation 
+as it varies with the total amount memory allocate so far in the system. As described above, we use 
+rdtsc to find the number of ticks taken for the operation and then calibrate rdtsc to conver
+these ticks into microseconds. It can be seen that for continuous mmaps the time is not only the lowest
+but also invariant with the total number of mmaps done so far. This is because of two reasons. First, 
+when a continuous mmap (with the same permissions) happens the kernel memory allocator does not need 
+create a new vm area struct, instead it modifies the adjacent vm area structs to account for the newly 
+accommodate memory. This ensures that there is no need to perform the lookup on the red black trees that 
+store the vm area sturct so a constant line is seen. 
+
+
 \begin{figure}
     \includegraphics[width=\columnwidth]{figures/mmap_latency}
     \caption{Latency of memory operations}
+    \label{fig:mmap_latency}
 \end{figure}
 
 \subsubsection{Memory (TODO: SPAI)}
