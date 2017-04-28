@@ -153,7 +153,7 @@ of the Linux memory management system.  First, we measure the scalability of
 Linux's \texttt{vm\_area\_struct}. Then, we measure the scalability of Linux's
 swapping mechanisms.
 
-\begin{figure}
+\begin{figure}[t]
 \centering
 \begin{tabular}{|l|p{5cm}|} \hline
 OS & Ubuntu 16.04.2 \\ \hline
@@ -352,7 +352,7 @@ the time taken by rand benchmark is lower than strided.
 
 TODO?
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_latency}
     \caption{Latency of memory operations}
     \label{fig:mmap_latency}
@@ -400,13 +400,13 @@ single structure. It is important for large applications such as object-oriented
 databases that map a large number of regions (TODO: Cite Linux book. Should we
 mention this?)to be aware of these overheads and mitigate them.
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
     \caption{$\Delta_i$ adjusted with control for benchmarks}
     \label{fig:mmap_mem_usage}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/vm_area_struct_count}
     \caption{Number of \texttt{vm\_area\_struct}s for benchmarks}
     \label{fig:vm_area_struct_count}
@@ -446,7 +446,7 @@ disable transparent huge pages for such applications. The kernel can also be
 cautious and limit the allocation of huge pages to processes in order to
 prevent early onset of memory pressure.
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_rss}
     \caption{RSS while touching pages while swapping for random benchmark.}
     \label{swap_rss}
@@ -454,32 +454,32 @@ prevent early onset of memory pressure.
 
 \subsubsection{Time}
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_cont_cdf}
     \caption{CDF of time to touch a page while swapping for continuous
     benchmark. Notice that the y-axis scale is from 99.75\% to 100\%.
     \label{fig:swap_time_cont_cdf}}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_rand_cdf}
     \caption{CDF of time to touch a page while swapping for random benchmark.
     Notice that the y-axis scale is from 93\% to 100\%.\label{fig:swap_time_rand_cdf}}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_time_cont}
     \caption{Time to touch a page while swapping for continuous benchmark.
     Notice that the y-scale is logarithmic.\label{fig:swap_time_cont}}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_time_rand}
     \caption{Time to touch a page while swapping for random
     benchmark.\label{fig:swap_time_rand}}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_time_cdf}
     \caption{CDF of amount of time spent on operations with a given
     latency.\label{fig:swap_time_cdf}}
@@ -518,18 +518,25 @@ high-latency accesses as compared with the smaller swap file.
 
 ~\\ \textbf{Conclusions} 
 
-Large swap files should be created with disk locality or on SSDs.
+While large swap files allow greater amount of memory overcommitment, they can
+also reduce the degree of disk locality. Thus, large swap files should be
+created with disk locality in mind or on SSDs. Some Linux distributions, such as
+Ubuntu, have switched to using swap files rather than swap partitions by default
+(TODO: cite). Our results suggest that for some workloads this may have a
+negative impact on performance if the swapfile ends up in non-continuous disk
+locations.
 
-Looking at 99.99-th percentile latencies is important because they can have a
-large impact on overall run time.
+Also, looking at 99.99-th percentile latencies is important because they can
+have a large impact on overall run time. As our results show, even very uncommon
+high-latency operations may have a significant impact on performance.
 
-TODO: what else?
+\subsection{kswapd and khugepaged (TODO: markm)}
 
-\subsection{kswapd}
+TODO
 
-TODO: time: MARKM
+~\\ \textbf{Conclusions} 
 
-TODO: khugepaged?
+TODO
 
 
 \section{Related Work}
