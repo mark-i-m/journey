@@ -28,11 +28,12 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 
-    int kswapd_pid = atoi(argv[1]);
+    //int kswapd_pid = atoi(argv[1]);
 
     // touch all the pages now
     while (1) {
-        std::cout << get_pid_cpu_usage(kswapd_pid) << std::endl;
+        //TODO: fix get_pid_cpu_usage first!
+        //std::cout << get_pid_cpu_usage(kswapd_pid) << std::endl;
         usleep(500);  // I don't know how to tune this time. It makes a difference. 
     }
 

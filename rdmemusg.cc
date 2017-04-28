@@ -13,8 +13,6 @@
 
 static char buf[2048];
 static int fd = -1;
-unsigned long kswapd_total_before = 0;
-unsigned long elapsed_before = 0;
 
 unsigned long getinfo(const char *file, const char *name) {
 	int local_n;
@@ -114,6 +112,7 @@ unsigned long getkernelmem() {
 	return tmem - fmem - pmem;
 }
 
+// TODO: this is no longer correct!!!
 double get_pid_cpu_usage(int pid) {
     unsigned long elapsed_delta = get_uptime_jiffies();
     unsigned long kswapd_delta = get_pid_jiffies(pid);
@@ -157,11 +156,7 @@ unsigned long get_pid_jiffies(int pid) {
 
     close(f);
 
-    unsigned long kswapd_total_now = u_time + s_time;
-    unsigned long kswapd_delta = kswapd_total_now - kswapd_total_before;
-    kswapd_total_before = kswapd_total_now;
-
-    return kswapd_delta;
+    return u_time + s_time;
 }
 
 unsigned long get_uptime_jiffies() {
@@ -201,10 +196,7 @@ unsigned long get_uptime_jiffies() {
     
     }
 
-    unsigned long elapsed_delta = total_uptime - elapsed_before;
-    elapsed_before = total_uptime;
-
-    return elapsed_delta;
+    return total_uptime;
 }
 
 unsigned long get_uptime() {
