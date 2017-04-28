@@ -93,7 +93,7 @@ managed using the \texttt{struct page} descriptors in the kernel.  We do not
 measure the overhead of \texttt{struct page} because it is known that there is
 one struct for each physical page. We do not measure the overhead of page
 tables because this can be calculated from the size of the virtual memory space
-used by the process.  When a program makes a memory management system calls
+used by the process.  When a program makes a memory management system call
 such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap}, \texttt{mprotect},
 \texttt{mlock}, or \texttt{madvise}, the kernel is creating, changing, or
 removing \texttt{vm\_area\_struct}s; thus, measuring the scalability of Linux
@@ -302,9 +302,9 @@ not)
 
 \subsubsection{Time}
 
-Figure \ref{fig:mmap_latency} shows for various microbenchmarks, the time taken
+Figure \ref{fig:mmap_latency} shows for various microbenchmarks the time taken
 per \texttt{mmap} operation as it varies with the total amount memory allocated
-so far by the system. 
+so far by the workload. 
 
 It can be seen that for continuous \texttt{mmap}s the time is not only the
 lowest but is also invariant with the total number of \texttt{mmap}s done so
@@ -333,20 +333,20 @@ area elsewhere in the address space. This operation needs creation of a new
 \texttt{vm\_area\_struct}.  The kernel also must search through the red-black
 tree, though it never finds a node which can be expanded to include the new
 mapping. Then, an insertion on the tree is needed, possibly including
-rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} might need to be
-deleted and removed from the tree. All of these operations ensure that frag
-mmap pattern takes the most amount of time.
+rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} needs to be
+removed from the tree. All of these operations ensure that the frag workload
+takes the most amount of time.
 
 The strided workload is very similar to frag because it will also force the
 kernel to always create a new structure and insert it into the tree after
 traversing the tree first. However, it does not need to delete an existing
-structure, because of which, it is faster than the frag benchmark.
+structure, which causes it to be faster than the frag benchmark.
 
 Finally, the rand workload will also search through the red-black tree first,
 but there is a reasonably high probability that it will find an existing
 mapping adjacent to the desired mapping which can be expanded, obviating the
-need to create a new struct and insert it into red-black tree. Therefore, most
-of the times the time taken by rand benchmark is lower than strided.
+need to create a new struct and insert it into red-black tree. Therefore, usually
+the time taken by rand benchmark is lower than strided.
 
 ~\\ \textbf{Conclusions}
 
@@ -420,7 +420,7 @@ mention this?)to be aware of these overheads and mitigate them.
 Figure \ref{fig:swap_rss} shows the RSS of each workload for the
 experiments described in section \ref{swapping_memory_overhead}. 
 
-The cont workloads write to adjacent 4KB pages in the address space. A huge page
+The cont workload writes to adjacent 4KB pages in the address space. A huge page
 of size 2MB is allocated when a new page is touched initially. Subsequent 4KB
 pages that are touched are subpages of the 2MB page allocated initially. As a
 result, the memory used by the workload is almost equal to the amount of memory
