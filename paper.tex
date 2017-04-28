@@ -217,7 +217,7 @@ running continually during the runs of the same benchmark.
 
 Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as the
 $i$-th measurement of $R$ during a run ($i = 0, 1, ..., 2^{20}$). System memory
-usage is known to jitter in Linux (TODO: cite). To adjust for this jitter, we
+usage is known to jitter in Linux \cite{jitter}. To adjust for this jitter, we
 define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
 $\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
 graphed in the figures in the following section. $\Delta_i$ represents the
@@ -519,7 +519,7 @@ While large swap files allow greater amount of memory overcommitment, they can
 also reduce the degree of disk locality. Thus, large swap files should be
 created with disk locality in mind or on SSDs. Some Linux distributions, such as
 Ubuntu, have switched to using swap files rather than swap partitions by default
-(TODO: cite). Our results suggest that for some workloads this may have a
+\cite{swap_ubuntu}. Our results suggest that for some workloads this may have a
 negative impact on performance if the swap file ends up in non-continuous disk
 locations.
 
@@ -660,8 +660,7 @@ existing memory management schemes are not scalable to larger systems.
 Similarly, in our work, we wish to examine scalability limitations of memory
 management in the Linux kernel. Other studies have suggested that \texttt{struct
 page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
-large portion of memory management overhead \cite{simics} (TODO: cite the LWN
-paper).
+large portion of memory management overhead \cite{simics, struct_page}.
 
 \bibliography{references}{}
 \bibliographystyle{plain}
