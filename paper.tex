@@ -4,8 +4,8 @@
 \usepackage{caption}
 \usepackage{graphicx}
 
-\title{Journey: A Study of Scalabilty of Memory Management in Linux (TODO: should we get a new title?)}
-\author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada\\\texttt{\{markm, hp, spai\}@cs.wisc.edu}}
+\title{Journey: A Study of Scalabilty of Memory Management in Linux}
+\author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada\\\texttt{\{markm, spai, hp\}@cs.wisc.edu}}
 \date{}
 
 \begin{document}
@@ -111,7 +111,7 @@ in the swap space, unmap it from the process's address space, and record which
 swap slot corresponds to the page.
 
 On Linux, the system may have multiple swap spaces in the form of a swap disk
-partition or of swapfiles on a filesystem. Both have a similar format on disk,
+partition or of swap files on a filesystem. Both have a similar format on disk,
 in which the space is broken into a number of swap slots large enough for one
 page. For each of these swap spaces, the kernel keeps a swap map, which records
 the usage of each swap slot so that it can find and allocate them quickly.
@@ -233,7 +233,7 @@ buffer containing stdout, where our readings are being printed. All of our
 experiments have the same stdout overhead, so this benchmark serves a baseline
 for comparison.
 
-\item \textit{Continuous} (``cont'' for short). This workload allocates $2^{20}$
+\item \textit{Continuous} (\texttt{cont} for short). This workload allocates $2^{20}$
 adjacent 16KB blocks.
 
 \item \textit{Strided}. This workload allocates $2^{20}$ untouching 16KB regions
@@ -242,7 +242,7 @@ in order of increasing memory address.
 \item \textit{Random}. This workload allocates randomly the pages in a
 inside of a $2^{20}$ page region.
 
-\item \textit{Fragmented} (``frag'' for short). This workload first allocates
+\item \textit{Fragmented} (\texttt{frag} for short). This workload first allocates
     $2^{21}$ contiguous 4KB blocks. Then, it resizes every other block to 16KB.
         The resizing operation, rather than the initial allocation is measured.
 \end{itemize}
@@ -295,9 +295,6 @@ recorded for each experiment and reported in the next section.
 
 \section{Results}
 
-(TODO: we need to be consistent with whether we texttt the benchmark names or
-not)
-
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
 \subsubsection{Time}
@@ -319,7 +316,7 @@ a new struct.
 Second, for continuous \texttt{mmap} operations, the time taken is always the
 lowest compared to other benchmarks.  This is because the kernel caches the
 most recently used \texttt{vm\_area\_struct}, avoiding a search in the
-red-black tree. In the continuous benchmark, this cached struct is always
+red-black tree. In the \texttt{cont} benchmark, this cached struct is always
 conveniently used.
 
 For the other workloads, a search through the red-black tree is often needed on
@@ -327,26 +324,26 @@ most accesses. This operation takes $O(log n)$ time (where $n$ is the number of
 virtual memory areas). The logarithmic behavior is visible in the plots for the
 benchmarks in Figure \ref{fig:mmap_latency}.
 
-The frag benchmark takes the most time of any benchmark. When a region of the
+The \texttt{frag} benchmark takes the most time of any benchmark. When a region of the
 address space is being expanded, the kernel is forced to unmap it and map a new
 area elsewhere in the address space. This operation needs creation of a new
 \texttt{vm\_area\_struct}.  The kernel also must search through the red-black
 tree, though it never finds a node which can be expanded to include the new
 mapping. Then, an insertion on the tree is needed, possibly including
 rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} needs to be
-removed from the tree. All of these operations ensure that the frag workload
+removed from the tree. All of these operations ensure that the \texttt{frag} workload
 takes the most amount of time.
 
-The strided workload is very similar to frag because it will also force the
+The \texttt{stride} workload is very similar to \texttt{frag} because it will also force the
 kernel to always create a new structure and insert it into the tree after
 traversing the tree first. However, it does not need to delete an existing
-structure, which causes it to be faster than the frag benchmark.
+structure, which causes it to be faster than the \texttt{frag} benchmark.
 
-Finally, the rand workload will also search through the red-black tree first,
+Finally, the \texttt{rand} workload will also search through the red-black tree first,
 but there is a reasonably high probability that it will find an existing
 mapping adjacent to the desired mapping which can be expanded, obviating the
 need to create a new struct and insert it into red-black tree. Therefore, usually
-the time taken by rand benchmark is lower than strided.
+the time taken by \texttt{rand} benchmark is lower than \texttt{stride}.
 
 ~\\ \textbf{Conclusions}
 
@@ -402,7 +399,7 @@ mention this?)to be aware of these overheads and mitigate them.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
-    \caption{$\Delta_i$ adjusted with control for benchmarks}
+    \caption{$\Delta_i$ adjusted with \texttt{control} for benchmarks}
     \label{fig:mmap_mem_usage}
 \end{figure}
 
@@ -420,20 +417,20 @@ mention this?)to be aware of these overheads and mitigate them.
 Figure \ref{fig:swap_rss} shows the RSS of each workload for the
 experiments described in section \ref{swapping_memory_overhead}. 
 
-The cont workload writes to adjacent 4KB pages in the address space. A huge page
+The \texttt{cont} workload writes to adjacent 4KB pages in the address space. A huge page
 of size 2MB is allocated when a new page is touched initially. Subsequent 4KB
 pages that are touched are subpages of the 2MB page allocated initially. As a
 result, the memory used by the workload is almost equal to the amount of memory
 it has written to. The RSS thus increases linearly until the system begins to
 swap when the number of free pages falls below a threshold. 
 
-The rand workload, on the other hand, writes to pages that are likely not
+The \texttt{rand} workload, on the other hand, writes to pages that are likely not
 adjacent and likely not subpages of a single huge page. As a result, a huge page
 is allocated with almost every write, and system memory is exhausted and begins
 swapping very quickly. Memory made available by kswapd is quickly consumed by
 further allocations. Hence, the memory used by the workload continues to stay
 close to its peak value. As expected, the behavior is the same irrespective of
-the size of the swapfile.
+the size of the swap file.
 
 ~\\ \textbf{Conclusions} 
 
@@ -448,7 +445,7 @@ prevent early onset of memory pressure.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_rss}
-    \caption{RSS while touching pages while swapping for random benchmark.}
+    \caption{RSS while touching pages while swapping for \texttt{rand} benchmark.}
     \label{swap_rss}
 \end{figure}
 
@@ -456,26 +453,26 @@ prevent early onset of memory pressure.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_cont_cdf}
-    \caption{CDF of time to touch a page while swapping for continuous
+    \caption{CDF of time to touch a page while swapping for \texttt{cont}
     benchmark. Notice that the y-axis scale is from 99.75\% to 100\%.
     \label{fig:swap_time_cont_cdf}}
 \end{figure}
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_touch_time_rand_cdf}
-    \caption{CDF of time to touch a page while swapping for random benchmark.
+    \caption{CDF of time to touch a page while swapping for \texttt{rand} benchmark.
     Notice that the y-axis scale is from 93\% to 100\%.\label{fig:swap_time_rand_cdf}}
 \end{figure}
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_time_cont}
-    \caption{Time to touch a page while swapping for continuous benchmark.
+    \caption{Time to touch a page while swapping for \texttt{cont} benchmark.
     Notice that the y-scale is logarithmic.\label{fig:swap_time_cont}}
 \end{figure}
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/swap_time_rand}
-    \caption{Time to touch a page while swapping for random
+    \caption{Time to touch a page while swapping for \texttt{rand}
     benchmark.\label{fig:swap_time_rand}}
 \end{figure}
 
@@ -489,7 +486,7 @@ This experiment is designed to measure the impact of swapping on memory
 operation latency. Figure \ref{fig:swap_time_cont} and Figure
 \ref{fig:swap_time_rand} show the results.
 
-The overall behavior is as expected. In the random benchmark, as before, all
+The overall behavior is as expected. In the \texttt{rand} benchmark, as before, all
 memory is exhausted quickly, and the benchmark induces swapping soon after the
 benchmark begins. Many memory accesses thus take milliseconds to complete
 because they require paging in or out, which is slow due to disk access.
@@ -498,22 +495,22 @@ Figure \ref{fig:swap_time_rand_cdf} shows that as much as 95\% of memory
 accesses occur on the micro-second scale. Of the remaining 5\%, almost all
 accesses complete in less than 20ms. Moreover, notice that the size of the
 swap file makes very little difference in this workload because the disk has to
-do random seeks regardless of swapfile size.
+do random seeks regardless of swap file size.
 
-The continuous benchmark has more surprising results. Notice that Figure
+The \texttt{cont} benchmark has more surprising results. Notice that Figure
 \ref{fig:swap_time_cont} has a logarithmic y-scale. The system only begins to
-swap after about 4M operations, as before. Unlike the random benchmark, we see a
+swap after about 4M operations, as before. Unlike the \texttt{rand} benchmark, we see a
 number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
 of all accesses done after swapping starts. However, Figure
 \ref{fig:swap_time_cdf} shows that these few accesses form a majority of run
 time; they impact performance significantly. (TODO: why do they happen?).
 
-We also find that in the continuous benchmark, a larger swap file actually has
+We also find that in the \texttt{cont} benchmark, a larger swap file actually has
 slightly more of these slow memory accesses. We believe this has to do with the
-fact that the large swapfile has less disk locality, and so causes more disk
+fact that the large swap file has less disk locality, and so causes more disk
 seeks when paging out. Figure \ref{fig:swap_time_cdf} shows that with a larger
-swap file, the continuous benchmark has a significantly higher number of
+swap file, the \texttt{cont} benchmark has a significantly higher number of
 high-latency accesses as compared with the smaller swap file.
 
 ~\\ \textbf{Conclusions} 
@@ -523,7 +520,7 @@ also reduce the degree of disk locality. Thus, large swap files should be
 created with disk locality in mind or on SSDs. Some Linux distributions, such as
 Ubuntu, have switched to using swap files rather than swap partitions by default
 (TODO: cite). Our results suggest that for some workloads this may have a
-negative impact on performance if the swapfile ends up in non-continuous disk
+negative impact on performance if the swap file ends up in non-continuous disk
 locations.
 
 Also, looking at 99.99-th percentile latencies is important because they can
