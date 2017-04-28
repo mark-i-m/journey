@@ -642,7 +642,7 @@ required by a computation, averting page faults \cite{charmpp}. Rather than
 implement page prefetching in a language runtime, one might implement a
 prefetcher in the swapping subsystem, making it general purpose. A large body
 of work already exists on hardware prefetching for processor caches, on which a
-swap prefetcher might draw for inspiration (TODO: cite). However, this approach
+swap prefetcher might draw for inspiration \cite{prefetching}. However, this approach
 can only work if page access patterns are predictable. Moreover, the high
 latency of disks implies that prefetchers would have to predict the very
 distant future (e.g. seconds ahead of execution). (TODO: Mike's comment on the
