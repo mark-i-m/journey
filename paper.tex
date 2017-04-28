@@ -424,6 +424,12 @@ mention this?)to be aware of these overheads and mitigate them.
 
 \subsubsection{Memory}
 
+\begin{figure}[t]
+    \includegraphics[width=\columnwidth]{figures/swap_rss}
+    \caption{RSS while touching pages while swapping for \texttt{rand} benchmark.
+    \label{fig:swap_rss}}
+\end{figure}
+
 Figure \ref{fig:swap_rss} shows the RSS of each workload for the
 experiments described in section \ref{swapping_memory_overhead}. 
 
@@ -452,12 +458,6 @@ performance can fall drastically in such cases. It might be advisable to
 disable transparent huge pages for such applications. The kernel can also be
 cautious and limit the allocation of huge pages to processes in order to
 prevent early onset of memory pressure.
-
-\begin{figure}[t]
-    \includegraphics[width=\columnwidth]{figures/swap_rss}
-    \caption{RSS while touching pages while swapping for \texttt{rand} benchmark.}
-    \label{swap_rss}
-\end{figure}
 
 \subsubsection{Time}
 
