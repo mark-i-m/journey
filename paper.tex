@@ -347,6 +347,14 @@ the time taken by rand benchmark is lower than strided.
 
 ~\\ \textbf{Conclusions}
 
+The latency of mapping memory region is lowest when the new memory is allocated
+next to an already allocated block. This latency is the worst when an already mapped region
+is to be expanded. We suspect that a lot of real world applications to show the fragmented 
+behavior when they need to expand their existing data structures. This furher highlights
+the imporance of optimistically leaving empty spaces around the allocated regions to 
+speed up memory expension. This would particularly be useful for performance crucial applications
+running atop compute infrastructures where memory is not a scarce resource. 
+
 TODO?
 
 \begin{figure}[t]
