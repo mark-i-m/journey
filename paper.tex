@@ -347,14 +347,17 @@ the time taken by \texttt{rand} benchmark is lower than \texttt{stride}.
 
 ~\\ \textbf{Conclusions}
 
-The kernel latency of m-mapping a memory region is lowest when the new memory is allocated
-next to an already allocated region. This latency is the worst in the frag microbenchmark i.e., when an already mapped region
-is to be expanded. We suspect a lot of real world applications to show the fragmented 
-behavior since it is common for applications to exapnd their existing data structures. 
-This finding highlights
-the imporance of optimistically leaving empty spaces around the allocated regions to 
-speed up memory expension. This practice would particularly be useful for performance crucial applications
-running atop compute infrastructures where memory is not a scarce resource, but kernel is. 
+The kernel latency of creating a memory region is lowest when the new memory is
+allocated next to an already allocated region. This latency is the worst in the
+\texttt{frag} microbenchmark i.e., when an already mapped region is to be expanded. We
+suspect a lot of real world applications to show the fragmented behavior since
+it is common for applications to exapnd their existing data structures.  This
+finding highlights the imporance of optimistically leaving empty spaces around
+the allocated regions to speed up memory expension. This practice would
+particularly be useful for performance crucial applications running atop compute
+infrastructures where memory is not a scarce resource, but kernel is. 
+
+(TODO: (markm) I am hesitant about these conclusions...)
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_latency}
