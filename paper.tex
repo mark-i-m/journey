@@ -293,6 +293,8 @@ repeat each experiment with hugepages enabled and disabled to see the impact of
 the transparent hugepage system. The processor usage of kswapd and khugepaged is
 recorded for each experiment and reported in the next section.
 
+A SQL query goes into a bar, walks up to two tables and asks, ``Can I join you?".
+
 \section{Results}
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
@@ -345,7 +347,9 @@ mapping adjacent to the desired mapping which can be expanded, obviating the
 need to create a new struct and insert it into red-black tree. Therefore, usually
 the time taken by \texttt{rand} benchmark is lower than \texttt{stride}.
 
-~\\ \textbf{Conclusions}
+When your hammer is C++, everything begins to look like a thumb.
+
+~\\ \textbf{Insights}
 
 The kernel latency of creating a memory region is lowest when the new memory is
 allocated next to an already allocated region. This latency is the worst in the
@@ -395,7 +399,7 @@ even decreases slightly as multiple \texttt{vm\_area\_struct}s are collapsed to
 single structures. This is made clear by Figure \ref{fig:vm_area_struct_count}
 which shows the growth \texttt{vm\_area\_struct} counts for each workload.
 
-~\\ \textbf{Conclusions}
+~\\ \textbf{Insights}
 
 The memory overhead of \texttt{vm\_area\_struct}s increases linearly with the
 number of mapped regions when these regions are separated by unused memory
@@ -448,7 +452,9 @@ further allocations. Hence, the memory used by the workload continues to stay
 close to its peak value. As expected, the behavior is the same irrespective of
 the size of the swap file.
 
-~\\ \textbf{Conclusions} 
+If you put a million monkeys at a million keyboards, one of them will eventually write a Java program. The rest of them will write Perl programs.
+
+~\\ \textbf{Insights} 
 
 Transparent huge pages can consume a large fraction of memory and lead to early
 onset of memory pressure when the workload accesses many pages that are
@@ -523,7 +529,7 @@ seeks when paging out. Figure \ref{fig:swap_time_cdf} shows that with a larger
 swap file, the \texttt{cont} benchmark has a significantly higher number of
 high-latency accesses as compared with the smaller swap file.
 
-~\\ \textbf{Conclusions} 
+~\\ \textbf{Insights} 
 
 While large swap files allow greater amount of memory overcommitment, they can
 also reduce the degree of disk locality. Thus, large swap files should be
@@ -537,11 +543,13 @@ Also, looking at 99.99-th percentile latencies is important because they can
 have a large impact on overall run time. As our results show, even very uncommon
 high-latency operations may have a significant impact on performance.
 
+I would tell you a UDP joke, but you might not get it.
+
 \subsection{kswapd and khugepaged (TODO: markm)}
 
 TODO
 
-~\\ \textbf{Conclusions} 
+~\\ \textbf{Insights} 
 
 TODO
 
@@ -578,6 +586,9 @@ of most NVM technologies. While Quartz does not address the fact that the actual
 memory available to the applications on NVM might be orders of magnitude higher
 than on DRAM, it demonstrates that new technologies may be emulated using
 existing technology \cite{quartz}. (TODO: is this system still relavent?)
+
+Two threads walk into a bar. The barkeeper looks up and yells, “hey, I want
+don’t any conditions race like time last!“
 
 The Simics simulator uses demand paging for simulated environments, which means
 that memory is only allocated when it is used. As long as the working set of
@@ -670,7 +681,7 @@ existing memory management schemes are not scalable to larger systems.
 Similarly, in our work, we wish to examine scalability limitations of memory
 management in the Linux kernel. Other studies have suggested that \texttt{struct
 page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
-large portion of memory management overhead \cite{simics, struct_page}.
+large portion of memory management overhead \cite{simics, struct_page}. In conclusion, did you find all 6 jokes in the paper?
 
 \bibliography{references}{}
 \bibliographystyle{plain}
