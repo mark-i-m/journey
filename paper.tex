@@ -12,6 +12,19 @@
 
 \maketitle
 
+\begin{abstract}
+    \small 
+
+
+
+large memory systems
+
+study scalability of linux kernel as first step
+
+point to some results
+
+\end{abstract}
+
 \section{Introduction}
 
 Recent advances in memory technologies are making it possible for machines with
@@ -37,21 +50,19 @@ benchmarks, which are less realistic. We note that there was a similar problem
 when large storage systems first became available \cite{david, exalt}.
 
 Currently, there are few good tools available to systems researchers for
-understanding how systems interact with large memories. We see the need for a
-general lightweight technique or tool for studying and designing operating
-systems capable of handling large memory while using systems currently
-available to researchers.  An important first step towards building such a tool
-is to identify bottlenecks in managing large memories that make a tool
-difficult to develop. 
+understanding how systems interact with large memories. An important first step
+towards building such a tool is to identify bottlenecks in managing large
+memories that make a tool difficult to develop. 
 
 In particular, we look at the case of a single process using a large amount of
-memory in Linux. We run experiments to identify the costs of
-\texttt{vm\_area\_struct}, a common bookkeeping data structure in the Linux
-kernel, along with the memory and processing overheads of swapping. From these
-data, we extrapolate to systems running with more memory with an eye on
-implications for studying large systems. While these experiments are not
-comprehensive, we believe they can offer insights that are useful both for
-building a research tool and for building systems.
+memory in Linux. We run experiments to identify the scalability of the Linux
+memory management system across multiple dimensions. First, we measure the
+overhead of \texttt{vm\_area\_struct}, a common bookkeeping data structure in
+the Linux kernel. Then, we measure the memory and processing overheads of
+swapping. From these data, we extrapolate to systems running with more memory
+with an eye on implications for studying large systems. While these experiments
+are not comprehensive, we believe they can offer insights that are useful both
+for building a research tool and for building systems.
 
 
 \section{Background}
@@ -65,10 +76,7 @@ necessary to understanding the experiments.
 
 A process may use the \texttt{mmap} system call to request that the kernel
 allocate part of its virtual address space. Accesses to memory addresses
-outside of allocated regions result in a segmentation fault. This makes memory
-corruption errors easier to find and debug, and increases security from memory
-corruption attacks.
-
+outside of allocated regions result in a segmentation fault.
 The Linux kernel keeps track of which portions of a process's address space
 have been allocated using the \texttt{vm\_area\_struct} data structure. Because
 processes may map a number of regions, including shared objects, stack, heap,
@@ -86,18 +94,19 @@ organizes all regions into a red-black tree for fast lookup.  Moreover,
 adjacent regions with similar permissions and properties are merged in an
 effort to keep bookkeeping costs low.
 
-We measure the memory overhead and latency of the Linux Memory Management
-system's use of \texttt{vm\_area\_struct}, which represents a region of a
-process's virtual address space. All the physical pages in the system are
-managed using the \texttt{struct page} descriptors in the kernel.  We do not
-measure the overhead of \texttt{struct page} because it is known that there is
-one struct for each physical page. We do not measure the overhead of page
-tables because this can be calculated from the size of the virtual memory space
-used by the process.  When a program makes a memory management system call
-such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap}, \texttt{mprotect},
-\texttt{mlock}, or \texttt{madvise}, the kernel is creating, changing, or
-removing \texttt{vm\_area\_struct}s; thus, measuring the scalability of Linux
-memory management requires measuring the overhead of these structs.
+In our first set of experiments, we measure the memory overhead and latency of
+the Linux Memory Management system's use of \texttt{vm\_area\_struct}, which
+represents a region of a process's virtual address space. All the physical
+pages in the system are managed using the \texttt{struct page} descriptors in
+the kernel.  We do not measure the overhead of \texttt{struct page} because it
+is known that there is one struct for each physical page. We do not measure the
+overhead of page tables because this can be calculated from the size of the
+virtual memory space used by the process.  When a program makes a memory
+management system call such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap},
+\texttt{mprotect}, \texttt{mlock}, or \texttt{madvise}, the kernel is creating,
+changing, or removing \texttt{vm\_area\_struct}s; thus, measuring the
+scalability of Linux memory management requires measuring the overhead of these
+structs.
 
 \subsection{Swapping}
 
@@ -107,8 +116,9 @@ their backing files, but anonymous memory is written to portion of the disk
 called swap space. We focus on anonymous memory in our experiments.
 
 Before swapping a page out to disk, the kernel must reserve a slot for the page
-in the swap space, unmap it from the process's address space, and record which
-swap slot corresponds to the page.
+in the swap space, unmap it from the process's address space by removing its
+page table entries and flushing the TLB, and record which swap slot corresponds
+to the page.
 
 On Linux, the system may have multiple swap spaces in the form of a swap disk
 partition or of swap files on a filesystem. Both have a similar format on disk,
@@ -143,8 +153,9 @@ The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
 intervals and sleeps in between. Also, it may be invoked if the system detects
 that memory has gone below a threshold. kswapd will continue to run until enough
 pages are freed to bring the free memory pool above some threashold. Then,
-kswapd goes back to sleep.  One concern with large memory systems is that kswapd
-may expend significant CPU time scanning through hundreds of thousands of pages.
+kswapd goes back to sleep.  One concern with systems that have a large memory
+usage is that kswapd may expend significant CPU time scanning through hundreds
+of thousands of pages.
 
 \section{Methodology}
 
@@ -186,10 +197,11 @@ processors, which gives high resolution cycle-level timestamps. We take a
 timestamp before and after each memory management operation in the workload and
 take the difference to get latency.
 
+% TODO: should we mention slab allocator?
 To measure memory usage, we use the procfs's reporting on current memory usage.
-Where appropriate, we record the slab allocator's count of active
+Where appropriate, we record the number of active
 \texttt{vm\_area\_struct}s in the system. Measuring kernel memory usage and
-associating memory usage with processes is difficult. Our methodology assumes
+associating memory usage with a particular process is difficult. Our methodology assumes
 that our benchmarks are running in an otherwise idle system and should dominate
 increases in memory usage.  We compute total memory usage by the rest of the
 system as the total amount of memory less the amount of memory used by the
@@ -309,7 +321,7 @@ It can be seen that for continuous \texttt{mmap}s the time is not only the
 lowest but is also invariant with the total number of \texttt{mmap}s done so
 far. There are two reasons for this. 
 
-First, when a continuous \texttt{mmap} (with the same permissions) happens the
+First, when a continuous \texttt{mmap} (with the same permissions) happens, the
 kernel memory allocator does not need to create a new \texttt{vm\_area\_struct}.
 Instead, it uses the existing \texttt{vm\_area\_struct} to account for the
 newly allocated space. This obviates the need to use the slab allocator to create
@@ -351,21 +363,16 @@ When your hammer is C++, everything begins to look like a thumb.
 
 ~\\ \textbf{Insights}
 
-The kernel latency of creating a memory region is lowest when the new memory is
-allocated next to an already allocated region. This latency is the worst in the
-\texttt{frag} microbenchmark i.e., when an already mapped region is to be expanded. We
-suspect a lot of real world applications to show the fragmented behavior since
-it is common for applications to exapnd their existing data structures.  This
-finding highlights the imporance of optimistically leaving empty spaces around
-the allocated regions to speed up memory expension. This practice would
-particularly be useful for performance crucial applications running atop compute
-infrastructures where memory is not a scarce resource, but kernel is. 
-
-(TODO: (markm) I am hesitant about these conclusions...)
+Linux's use of \texttt{vm\_area\_struct} tends to be scalable in the general
+case. The kernel latency of creating a memory region is lowest when the new
+memory is allocated next to an already allocated region. This latency is the
+worst in the \texttt{frag} microbenchmark i.e., when an already mapped region
+is to be expanded.  We recommend that applications that manage their own memory
+and expand memory regions should avoid this pattern.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_latency}
-    \caption{Latency of memory operations}
+    \caption{Latency of memory operations (TODO: improve the scale to make log behavior more apparent)}
     \label{fig:mmap_latency}
 \end{figure}
 
@@ -447,7 +454,7 @@ swap when the number of free pages falls below a threshold.
 The \texttt{rand} workload, on the other hand, writes to pages that are likely not
 adjacent and likely not subpages of a single huge page. As a result, a huge page
 is allocated with almost every write, and system memory is exhausted and begins
-swapping very quickly. Memory made available by kswapd is quickly consumed by
+swapping very quickly (20,000 operations compared to 4 million with the \texttt{cont} benchmark). Memory made available by kswapd is quickly consumed by
 further allocations. Hence, the memory used by the workload continues to stay
 close to its peak value. As expected, the behavior is the same irrespective of
 the size of the swap file.
@@ -520,7 +527,7 @@ number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
 of all accesses done after swapping starts. However, Figure
 \ref{fig:swap_time_cdf} shows that these few accesses form a majority of run
-time; they impact performance significantly. (TODO: why do they happen?).
+time; they impact performance significantly.
 
 We also find that in the \texttt{cont} benchmark, a larger swap file actually has
 slightly more of these slow memory accesses. We believe this has to do with the
@@ -539,15 +546,19 @@ Ubuntu, have switched to using swap files rather than swap partitions by default
 negative impact on performance if the swap file ends up in non-continuous disk
 locations.
 
+Mark was telling Suhas a TCP joke the other day. He had to keep repeating it slower
+and slower until Suhas got it.
+
 Also, looking at 99.99-th percentile latencies is important because they can
 have a large impact on overall run time. As our results show, even very uncommon
 high-latency operations may have a significant impact on performance.
 
-I would tell you a UDP joke, but you might not get it.
+I would tell you a UDP joke, but you might not get it. But if you did get it, you
+wouldn't acknowledge it.
 
 \subsection{kswapd and khugepaged (TODO: markm)}
 
-TODO
+TODO: in progress... should be ready for final product...
 
 ~\\ \textbf{Insights} 
 
@@ -555,6 +566,12 @@ TODO
 
 
 \section{Related Work}
+
+Initially, we had intended to build a tool for studying large memory systems.
+We found that the first step in doing so is studying the scalability of current
+memory management systems themselves. Thus, our related work section, while
+still relevant to our overall goal, is more directed at the second step of
+building the tool.
 
 The emergence of new technology has in the past often required operating systems
 to change. Traditionally, OS researchers and developers benchmark and test their
@@ -585,10 +602,10 @@ existing hardware capabilities to emulate the higher latency and lower bandwidth
 of most NVM technologies. While Quartz does not address the fact that the actual
 memory available to the applications on NVM might be orders of magnitude higher
 than on DRAM, it demonstrates that new technologies may be emulated using
-existing technology \cite{quartz}. (TODO: is this system still relavent?)
+existing technology \cite{quartz}.
 
-Two threads walk into a bar. The barkeeper looks up and yells, “hey, I want
-don’t any conditions race like time last!“
+Two threads walk into a bar. Bartender Hasnain looks up and yells, ``Hey, I want
+don’t any conditions race like time last!''
 
 The Simics simulator uses demand paging for simulated environments, which means
 that memory is only allocated when it is used. As long as the working set of
@@ -635,12 +652,9 @@ performance measurements when running benchmarks. It can also make large
 benchmarks impractical.
 
 Interestingly, many of non-volatile memory technologies are making their ways
-into storage drives, such as Intel's recently-announced Optane SSDs. One
-potential use of fast storage devices is for fast swapping space. Some
-literature has proposed that small amounts of DRAM backed by large amounts of
-fast swap space can be a scalable alternative to having large amounts of fast
-RAM (TODO: cite). (TODO: can we have this in our report?). In such a system,
-the overhead of swapping may become a bottleneck.
+into storage drives. One potential use of fast storage devices is for fast
+swapping space. In such a system, the overhead of swapping may become a
+bottleneck.
 
 Prefetching pages from swap space can offer a way to mitigate the overhead of
 memory overcommitment, possibly making large virtual machines a viable
@@ -653,13 +667,11 @@ required by a computation, averting page faults \cite{charmpp}. Rather than
 implement page prefetching in a language runtime, one might implement a
 prefetcher in the swapping subsystem, making it general purpose. A large body
 of work already exists on hardware prefetching for processor caches, on which a
-swap prefetcher might draw for inspiration \cite{prefetching}. However, this approach
-can only work if page access patterns are predictable. Moreover, the high
-latency of disks implies that prefetchers would have to predict the very
-distant future (e.g. seconds ahead of execution). (TODO: Mike's comment on the
-previous version of this paragraph said that it was ``too distant/off topic''.
-Is it better now? I feel like prefetching was an idea that we considered too
-much to leave out...)
+swap prefetcher might draw for inspiration \cite{prefetching}. However, this
+approach can only work if page access patterns are predictable. Moreover, the
+high latency of disks currently implies that prefetchers would have to predict
+the very distant future (e.g. seconds ahead of execution); however, with
+non-volatile memory-based swap space, this idea may be more practical.
 
 Gupta et al. built an emulator for high speed networks using a technique called
 time dilation, which slows down the OS clock to make it appear that external
@@ -681,7 +693,7 @@ existing memory management schemes are not scalable to larger systems.
 Similarly, in our work, we wish to examine scalability limitations of memory
 management in the Linux kernel. Other studies have suggested that \texttt{struct
 page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
-large portion of memory management overhead \cite{simics, struct_page}. In conclusion, did you find all 6 jokes in the paper?
+large portion of memory management overhead \cite{simics, struct_page}. In conclusion, did you find all 7 jokes in the paper?
 
 \bibliography{references}{}
 \bibliographystyle{plain}
