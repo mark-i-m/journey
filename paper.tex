@@ -15,13 +15,27 @@
 \begin{abstract}
     \small 
 
+Recent advances in memory technologies are making it possible for machines with
+    large amounts of memory to become commonplace.  Much research is currently
+    being done to study how non-volatile and large memory systems would change
+    system design.  We see the need for a lightweight tool to study such
+    systems at scale with real workloads.  The first step towards building such
+    a tool is to study the scalability of existing memory management systems. 
 
+We observe that in most cases, Linux kernel memory management scales well with
+    large amounts of physical memory. However, we observe that some workloads
+    can trigger poor behavior. In particular, workloads that allocated many
+    virtual memory areas can accumulate significant memory and computational
+    overhead of kernel metadata.
 
-large memory systems
+We also observe that transparent hugepages can induce significantly earlier
+    onset of memory pressure in workloads that have random access patterns,
+    which may nullify the benefits from better TLB behavior. This can happen
+    even in workloads that would not otherwise experience memory pressure.
 
-study scalability of linux kernel as first step
+Finally, we observe that the 99.99-th percentile of disk latency during swapping
+can account for over 70\% of runtime for the workloads we tested.
 
-point to some results
 
 \end{abstract}
 
@@ -415,8 +429,7 @@ of the order of hundreds of megabytes to gigabytes for large memory systems.  To
 reduce this overhead, it is crucial that regions with similar access permissions
 are placed adjacently in the address space so that they can be identified by a
 single structure. It is important for large applications such as object-oriented
-databases that map a large number of regions (TODO: Cite Linux book. Should we
-mention this?)to be aware of these overheads and mitigate them.
+databases that map a large number of regions to be aware of these overheads and mitigate them \cite{utlk}.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
@@ -564,6 +577,8 @@ TODO: in progress... should be ready for final product...
 
 TODO
 
+
+% TODO: we need to discuss implications for large memory in the insights sections more
 
 \section{Related Work}
 
