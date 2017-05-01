@@ -575,17 +575,49 @@ Figure (TODO) shows the total number of jiffies spent running kswapd as the
 number of operations performed increases. Figure (TODO) shows the same for
 khugepaged. Notice that one jiffy corresponds to 10ms of runtime.
 
-We find that although kswapd does not take up a significant
-percentage of runtime compared with the applcation, it does still take
-siginficant amounts of time and use system resources. This is especially true
-during times of high memory pressure.
+We find that khugepaged does not take significant computational power. (TODO:
+more) However, our workloads also are not conducive to allowing khugepaged to
+merge pages, and it apparently does not choose to merge 2MB pages into 1GB
+pages.
 
-We also found that kswapd's behavior heavily depends on whether huge pages are
-enabled or not.
+Likewise, we find that kswapd does not take up a significant percentage of
+runtime compared with the applcation. The behavior of kswapd depends heavily on
+the workload and on whether transparent hugepages are enabled. Workloads that do
+not exhibit memory pressure do not incur kswapd overhead, as shown by the
+\texttt{rand} benchmark with hugepages off.
+
+As expected, the \texttt{rand} benchmark with hugepages on incurs the highest
+total overhead since it begins swapping very quickly. For this benchmark we
+observe an overhead of roughly 0.0002 jiffies per page memory touched. Figure
+also shows that when huge pages are enabled, kswapd runs for longer periods of
+time with longer sleeps in between. We suspect that kswapd swaps out several
+large pages at a time, which frees more memory at once than free normal 4kB
+pages, but due to time constraints, we have not verified this.
+
+In contrast, the \texttt{cont} benchmark with hugepages disabled uses
+computational time at roughly 0.0572 jiffies per page of memory touched.
+Moreover, kswapd runs more frequently and for shorter periods of time. We
+suspect that because pages are smaller, kswapd must run more often to reclaim
+the same amount of memory as with large pages.
+
+Notice also that the \texttt{cont} benchmark with hugepages enabled spends very
+little time in kswapd. This is somewhat surprising given the amount of time
+spent for the \texttt{rand} benchmark. We suspect that kswapd runs once and
+choose a large number of pages to swap out. Subsequently, both the workload and
+kswapd wait for I/O. This seems consistent with our previous results, in which
+some operations take on the order of seconds to complete.
+
 
 ~\\ \textbf{Insights} 
 
-TODO
+kswapd and the swapping system seem to have some interesting pathological cases
+that are worth exploring further.
+
+We expect that this number increases with the size of physical memory
+because kswapd will have more pages to scan, but due to time constraints, we
+have not verified this. 
+
+TODO: anything else?
 
 
 % TODO: we need to discuss implications for large memory in the insights sections more
