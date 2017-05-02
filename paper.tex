@@ -15,16 +15,14 @@
 \begin{abstract}
     \small 
 
-Recent advances in memory technologies are making it possible for machines with
-    large amounts of memory to become commonplace.  Much research is currently
-    being done to study how non-volatile and large memory systems would change
-    system design.  We see the need for a lightweight tool to study such
-    systems at scale with real workloads.  The first step towards building such
-    a tool is to study the scalability of existing memory management systems. 
+Much research is currently being done to study how non-volatile and large memory
+    systems would change system design.  We see the need for a lightweight tool
+    to study such systems at scale with real workloads.  The first step towards
+    building such a tool is to study the scalability of existing memory
+    management systems. 
 
 We observe that in most cases, Linux kernel memory management scales well with
-    large amounts of physical memory. However, we observe that some workloads
-    can trigger poor behavior. In particular, workloads that allocated many
+    large amounts of physical memory. However, workloads that allocated many
     virtual memory areas can accumulate significant memory and computational
     overhead of kernel metadata.
 
@@ -34,8 +32,7 @@ We also observe that transparent hugepages can induce significantly earlier
     even in workloads that would not otherwise experience memory pressure.
 
 Finally, we observe that the 99.99-th percentile of disk latency during swapping
-can account for over 70\% of runtime for the workloads we tested.
-
+    can account for over 70\% of runtime for the workloads we tested.
 
 \end{abstract}
 
