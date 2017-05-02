@@ -325,6 +325,54 @@ recorded for each experiment and reported in the next section.
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
+\begin{figure}[t]
+    \includegraphics[width=\columnwidth]{figures/mmap_latency}
+    \caption{Latency of memory operations. A running average with window of
+    width 5000 operations is used to reduce jitter.}
+    \label{fig:mmap_latency}
+\end{figure}
+
+\subsubsection{Memory}
+Figure \ref{fig:mmap_mem_usage} shows the growth in memory usage of the system
+for the workloads described in section \ref{ss_vm_area_struct}. 
+
+The
+\texttt{cont} workload coincides with the \texttt{control} workload, as only the
+first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. The subsequent
+operations are subsumed by the initial \texttt{vm\_area\_struct} because the mapped
+regions are adjacent, and hence the memory usage does not increase despite the
+large number of \texttt{mmap} operations.  
+
+The \texttt{stride} workload allocates a
+\texttt{vm\_area\_struct} for each operation due to the separation of
+allocations in the virtual address space. As a result, the memory usage
+increases significantly as more memory is consumed with each \texttt{mmap} operation.
+
+This is also the case for the \texttt{frag} workload which breaks up a single
+\texttt{vm\_area\_struct} for a large area in the virtual address space into
+multiple smaller areas, which results in the allocation of a new structure for
+every resize operation. 
+
+The \texttt{rand} workload initially creates a new
+\texttt{vm\_area\_struct} struct for each \texttt{mmap} operation. Eventually, these
+allocations form larger contiguous allocations when two or more regions are
+mapped next to each other, resulting in a single \texttt{vm\_area\_struct} being
+used for that range. As a result, the memory usage begins to taper off and
+even decreases slightly as multiple \texttt{vm\_area\_struct}s are collapsed to
+single structures. This is made clear by Figure \ref{fig:vm_area_struct_count}
+which shows the growth \texttt{vm\_area\_struct} counts for each workload.
+
+~\\ \textbf{Insights}
+
+The memory overhead of \texttt{vm\_area\_struct}s increases linearly with the
+number of mapped regions when these regions are separated by unused memory
+addresses. When a workload maps a large number of regions, this overhead can be
+on the order of hundreds of megabytes to gigabytes for large memory systems.  To
+reduce this overhead, it is crucial that regions with similar access permissions
+are placed adjacently in the address space so that they can be identified by a
+single structure. It is important for large applications such as object-oriented
+databases that map a large number of regions to be aware of these overheads and mitigate them \cite{utlk}.
+
 \subsubsection{Time}
 
 Figure \ref{fig:mmap_latency} shows the time taken
@@ -381,54 +429,6 @@ memory is allocated next to an already allocated region. This latency is the
 worst in the \texttt{frag} microbenchmark i.e., when an already mapped region
 is to be expanded.  We recommend that applications that manage their own memory
 and expand memory regions should avoid this pattern.
-
-\begin{figure}[t]
-    \includegraphics[width=\columnwidth]{figures/mmap_latency}
-    \caption{Latency of memory operations. A running average with window of
-    width 5000 operations is used to reduce jitter.}
-    \label{fig:mmap_latency}
-\end{figure}
-
-\subsubsection{Memory}
-Figure \ref{fig:mmap_mem_usage} shows the growth in memory usage of the system
-for the workloads described in section \ref{ss_vm_area_struct}. 
-
-The
-\texttt{cont} workload coincides with the \texttt{control} workload, as only the
-first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. The subsequent
-operations are subsumed by the initial \texttt{vm\_area\_struct} because the mapped
-regions are adjacent, and hence the memory usage does not increase despite the
-large number of \texttt{mmap} operations.  
-
-The \texttt{stride} workload allocates a
-\texttt{vm\_area\_struct} for each operation due to the separation of
-allocations in the virtual address space. As a result, the memory usage
-increases significantly as more memory is consumed with each \texttt{mmap} operation.
-
-This is also the case for the \texttt{frag} workload which breaks up a single
-\texttt{vm\_area\_struct} for a large area in the virtual address space into
-multiple smaller areas, which results in the allocation of a new structure for
-every resize operation. 
-
-The \texttt{rand} workload initially creates a new
-\texttt{vm\_area\_struct} struct for each \texttt{mmap} operation. Eventually, these
-allocations form larger contiguous allocations when two or more regions are
-mapped next to each other, resulting in a single \texttt{vm\_area\_struct} being
-used for that range. As a result, the memory usage begins to taper off and
-even decreases slightly as multiple \texttt{vm\_area\_struct}s are collapsed to
-single structures. This is made clear by Figure \ref{fig:vm_area_struct_count}
-which shows the growth \texttt{vm\_area\_struct} counts for each workload.
-
-~\\ \textbf{Insights}
-
-The memory overhead of \texttt{vm\_area\_struct}s increases linearly with the
-number of mapped regions when these regions are separated by unused memory
-addresses. When a workload maps a large number of regions, this overhead can be
-on the order of hundreds of megabytes to gigabytes for large memory systems.  To
-reduce this overhead, it is crucial that regions with similar access permissions
-are placed adjacently in the address space so that they can be identified by a
-single structure. It is important for large applications such as object-oriented
-databases that map a large number of regions to be aware of these overheads and mitigate them \cite{utlk}.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
