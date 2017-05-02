@@ -566,7 +566,7 @@ Also, looking at 99.99-th percentile latencies is important because they can
 have a large impact on overall run time. As our results show, even very uncommon
 high-latency operations may have a significant impact on performance.
 
-I would tell you a UDP joke, but you might not get it. But if you did get it, you
+I would tell you a UDP joke, but you might not get it. Well, even if you got it, you
 wouldn't acknowledge it.
 
 \subsection{kswapd and khugepaged (TODO: markm)}
@@ -709,6 +709,26 @@ Similarly, in our work, we wish to examine scalability limitations of memory
 management in the Linux kernel. Other studies have suggested that \texttt{struct
 page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
 large portion of memory management overhead \cite{simics, struct_page}. In conclusion, did you find all 7 jokes in the paper?
+
+
+\section{Conclusion}
+Terabytes scale memory systems are poised to become commonplace in not too distant future.
+Developers and researchers need tools to study the behavior of such systems even before the actual
+deployments are avaialable. In this paper, we study the scalability of memory management 
+system of Linux Kernel which we believe is the first step toward building such tools. In particular, 
+we look at the scalability of \texttt{vm\_area\_struct},  
+swapping subsystem, and the effect of hugepages across a wide range of varying parameters
+and workloads. Our findings indicate that save for the fragmented mmmap pattern, 
+\texttt{vm\_area\_struct} tends to be sclable in the general case. We further find that the use of 
+transparent hugepages can lead to early onset of memory pressure for the random access pattern of applications. 
+This can lead to excessive swapping which might outweigh any potential benefits enabled by the use of hugepages. 
+We also quantify the degradation in performance due to the use of large swapping files and find that very large 
+swapping files should be used with caution becuase they can lead to very poor performance due to the loss of disk 
+locality.This aspact is more crucial in large scale memory system compared the the conventional systems.  
+While priliminary, we believe that our study is a first step towards building tools 
+to study large memory systems in a principled and informed manner. 
+ 
+
 
 \bibliography{references}{}
 \bibliographystyle{plain}
