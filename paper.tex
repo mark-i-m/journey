@@ -719,7 +719,7 @@ deployments are avaialable. In this paper, we study the scalability of memory ma
 system of Linux Kernel which we believe is the first step toward building such tools. In particular, 
 we look at the scalability of \texttt{vm\_area\_struct},  
 swapping subsystem, and the effect of hugepages across a wide range of varying parameters
-and workloads. Our findings indicate that save for the fragmented mmmap pattern, 
+and workloads. Our findings indicate that save for the fragmented mmap pattern, 
 \texttt{vm\_area\_struct} tends to be sclable in the general case. We further find that the use of 
 transparent hugepages can lead to early onset of memory pressure for the random access pattern of applications. 
 This can lead to excessive swapping which might outweigh any potential benefits enabled by the use of hugepages. 
