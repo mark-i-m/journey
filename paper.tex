@@ -386,7 +386,8 @@ and expand memory regions should avoid this pattern.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_latency}
-    \caption{Latency of memory operations (TODO: improve the scale to make log behavior more apparent)}
+    \caption{Latency of memory operations. A running average with window of
+    width 5000 operations is used to reduce jitter.}
     \label{fig:mmap_latency}
 \end{figure}
 
