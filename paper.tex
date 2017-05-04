@@ -26,12 +26,11 @@ We observe that in most cases, Linux kernel memory management scales well with
     virtual memory areas can accumulate significant memory and computational
     overhead due to kernel metadata.
 
-We also observe that transparent hugepages can induce significantly earlier
+In addition, transparent hugepages can induce significantly earlier
     onset of memory pressure in workloads that have random access patterns,
     which may nullify the benefits from better TLB behavior. This can happen
     even in workloads that would not otherwise experience memory pressure.
-
-Finally, we observe that the 99.99-th percentile of disk latency during swapping
+Finally, we see that the 99.99-th percentile of disk latency during swapping
     can account for over 70\% of runtime for the workloads we tested.
 
 \end{abstract}
