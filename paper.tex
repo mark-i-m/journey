@@ -66,14 +66,18 @@ towards building such a tool is to identify bottlenecks in managing large
 memories that make a tool difficult to develop. 
 
 In particular, we look at the case of a single process using a large amount of
-memory in Linux. We run experiments to identify the scalability of the Linux
-memory management system across multiple dimensions. First, we measure the
-overhead of \texttt{vm\_area\_struct}, a common bookkeeping data structure in
-the Linux kernel. Then, we measure the memory and processing overheads of
-swapping. From these data, we extrapolate to systems running with more memory
-with an eye on implications for studying large systems. While these experiments
-are not comprehensive, we believe they can offer insights that are useful both
-for building a research tool and for building systems.
+memory in a current Linux system. We run experiments to identify the scalability
+of the Linux memory management system across multiple dimensions. First, we
+measure the overhead of \texttt{vm\_area\_struct}, a common bookkeeping data
+structure in the Linux kernel. Then, we measure the memory and processing
+overheads of swapping. From these data, we extrapolate to systems running with
+more memory; many of the behaviors we identify would be aggravated by having or
+using more memory.
+
+While these experiments are not comprehensive, we believe they can offer
+insights that are useful both for building a research tool and for building
+systems. Also, we focus on large memory systems in general, rather than
+persistent memory system in particular.
 
 
 \section{Background}
@@ -166,7 +170,7 @@ The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
 intervals and sleeps in between. Also, it may be invoked if the system detects
 that memory has gone below a threshold. kswapd will continue to run until enough
 pages are freed to bring the free memory pool above some threashold. Then,
-kswapd goes back to sleep.  One concern with systems that have a large memory
+kswapd goes back to sleep \cite{utlk}.  One concern with systems that have a large memory
 usage is that kswapd may expend significant CPU time scanning through hundreds
 of thousands of pages.
 
@@ -230,7 +234,7 @@ overall, while \texttt{/proc/[pid]/stat} reports on the specified process.
 
 For each workload, we measure the latency and increase in memory usage due to
 each operation in the benchmark. Notably, we do not touch the pages that we
-allocate, avoiding both a page fault and the allocation of a back physical page
+allocate, avoiding both a page fault and the allocation of a backing physical page
 for the allocated virtual pages. This allows us to measure just the overhead of
 memory management, as opposed to physical page allocation, swapping, page
 faults, or other overheads.  Each workload contains $2^{20}$ memory management
@@ -264,12 +268,15 @@ adjacent 16KB blocks.
 \item \textit{Strided}. This workload allocates $2^{20}$ untouching 16KB regions
 in order of increasing memory address.
 
-\item \textit{Random}. This workload allocates randomly the pages in a
-inside of a $2^{20}$ page region.
+\item \textit{Random}. This workload randomly allocates the pages in a
+$2^{20}$ page region.
 
 \item \textit{Fragmented} (\texttt{frag} for short). This workload first allocates
     $2^{21}$ contiguous 4KB blocks. Then, it resizes every other block to 16KB.
         The resizing operation, rather than the initial allocation, is measured.
+        By resizing every other block, rather than every block, the number of
+        worst-case operations is maximized because the kernel must move each
+        resized block.
 \end{itemize}
 
 \subsection{Swapping Memory Overhead}
@@ -310,7 +317,7 @@ itself, along with the impact on latency.
 These experiments are designed to measure the processing overhead of kswapd when
 the system is under high memory pressure.
 
-A single process allocates 18GB of virtual memory space and writes one byte of
+As in the previous set of experiments, a single process allocates 18GB of virtual memory space and writes one byte of
 each 4KB page in the region. The same two access patterns are tested as in the
 previous set of experiments (continuous and random).
 
@@ -376,7 +383,7 @@ databases that map a large number of regions to be aware of these overheads and 
 \subsubsection{Time}
 
 Figure \ref{fig:mmap_latency} shows the time taken
-per \texttt{mmap} operation as it varies with the total amount memory allocated
+per \texttt{mmap} operation as it varies with the total amount of memory allocated
 so far by the workload. 
 
 It can be seen that for continuous \texttt{mmap}s the time is not only the
@@ -711,6 +718,22 @@ page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
 large portion of memory management overhead \cite{simics, struct_page}. 
 
 %In conclusion, did you find all 7 jokes in the paper?
+
+(TODO: where to put this paragraph?)
+A study of recent changes to memory management in Linux has found that there has
+been a lot of focus on improving the scalability of data structures used in the
+Linux memory manager (TODO cite: Huang et. al. ATC'16). Since systems with
+persistent memory are expected to have large amounts of memory, there have been
+efforts to reduce the overheads of struct page. This is because these structures
+can consume several gigabytes of memory for systems with terabytes of persistent
+memory (TODO cite: https://lwn.net/Articles/640113/). These structures need to
+be stored in volatile memory not only because they need to be accessed quickly
+for performance reasons, but also to avoid wearing out of persistent memory due
+to frequent writes to this data structure. Patches proposed to the Linux kernel
+have proposed getting rid of the struct page altogether, but the complexity
+associated with such radical changes have hindered their acceptance by the
+community. Other works such as RadixVM \cite{radixvm} have also approached
+scalability with respect to the number of cores in the system.
 
 
 \section{Conclusion}
