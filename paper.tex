@@ -605,13 +605,13 @@ keep up with demand for their services, but systems researchers did not have
 access to these machines. Alameldeen et al. describe how they simulate a
 multi-million dollar server using a \$2000 workstation. To do this, they go
 through several rounds of scaling down, optimizing, changing, and tuning both
-the benchmarks and systems they test. For example, they scale down a workload to
-fit in the 1GB memory of the machine they use and increase the number of threads
-to improve parallelism \cite{2kmachine}. This methodology may be accurate, but
-it requires modifying the benchmarks, which is error prone and time consuming.
-Ideally,
-researchers can run large experimental workloads without changes, but the overheads
-of current memory management systems prevent this from being practical.
+the benchmarks and systems they test. For example, they scale down a workload
+to fit in the 1GB memory of the machine they use and increase the number of
+threads to improve parallelism \cite{2kmachine}. This methodology may be
+accurate, but it requires modifying the benchmarks, which is error prone and
+time consuming.  Ideally, researchers can run large experimental workloads
+without changes, but the overheads of current memory management systems prevent
+this from being practical.
 
 Likewise, the Quartz emulator studies the behaviour of applications on
 Non-volatile Memory (NVM) while actually running on top of DRAM. It uses
