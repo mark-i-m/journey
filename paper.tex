@@ -20,7 +20,6 @@ Much research is currently being done to study how non-volatile and large memory
     to study such systems at scale with real workloads.  The first step towards
     building such a tool is to study the scalability of existing memory
     management systems. 
-
 We find that in most cases, Linux kernel memory management scales well with
     large amounts of physical memory. However, workloads that allocated many
     virtual memory areas can accumulate significant memory and computational
@@ -28,7 +27,6 @@ We find that in most cases, Linux kernel memory management scales well with
     Furthermore, in certain situations, transparent hugepages can nullify the
     benefits from better TLB reaches by inducing memory pressure earlier, even
     for workloads that would otherwise not experience it.
-
 Finally, we see that the 99.99-th percentile of disk latency during swapping
     can account for over 70\% of runtime for the workloads we tested.
 
