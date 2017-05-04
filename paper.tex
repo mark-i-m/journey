@@ -21,15 +21,14 @@ Much research is currently being done to study how non-volatile and large memory
     building such a tool is to study the scalability of existing memory
     management systems. 
 
-We observe that in most cases, Linux kernel memory management scales well with
+We find that in most cases, Linux kernel memory management scales well with
     large amounts of physical memory. However, workloads that allocated many
     virtual memory areas can accumulate significant memory and computational
-    overhead due to kernel metadata.
+    overhead due to kernel metadata.     
+    Furthermore, in certain situations, transparent hugepages can nullify the
+    benefits from better TLB reaches by inducing memory pressure earlier, even
+    for workloads that would otherwise not experience it.
 
-In addition, transparent hugepages can induce significantly earlier
-    onset of memory pressure in workloads that have random access patterns,
-    which may nullify the benefits from better TLB behavior. This can happen
-    even in workloads that would not otherwise experience memory pressure.
 Finally, we see that the 99.99-th percentile of disk latency during swapping
     can account for over 70\% of runtime for the workloads we tested.
 
