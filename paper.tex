@@ -155,13 +155,14 @@ order. It uses a clock-like algorithm, in which a list of pages is scanned
 twice. Roughly speaking, if a page is not used between scans, then it is a
 candidate for reclamation.
 
-The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
-intervals and sleeps in between. Also, it may be invoked if the system detects
-that memory has gone below a threshold. kswapd will continue to run until enough
-pages are freed to bring the free memory pool above some threshold before going to
-sleep \cite{utlk}.  One concern with systems that have a large memory
-usage is that kswapd may expend significant CPU time scanning through hundreds
-of thousands of pages.
+The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at
+regular intervals and sleeps in between. Also, it is invoked if the system
+detects that memory has gone below a threshold such as during a page fault.
+kswapd will continue to run until enough pages are freed to bring the free
+memory pool above some threshold before going to sleep \cite{utlk}.  This may
+cause the faulting process to block for a while. One concern with systems that
+have a large memory usage is that kswapd may expend significant CPU time
+scanning through hundreds of thousands of pages.
 
 \section{Methodology}
 
@@ -231,10 +232,11 @@ Each benchmark was run 5 times and the results aggregated as described below. We
 reboot the machine when switching to a different benchmark, but keep the machine
 running continually during the runs of the same benchmark. 
 
-Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as the
-$i$-th measurement of $R$ during a run ($i = 0, 1, ..., 2^{20}$). System memory
-usage is known to jitter in Linux \cite{jitter}. To adjust for this jitter, we
-define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
+Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as
+the $i$-th measurement of $R$ during a run ($i = 0, 1, ..., 2^{20}$). $R_0$
+corresponds to the measurement before the first operation. System memory usage
+is known to jitter in Linux \cite{jitter}. To adjust for this jitter, we define
+$\Delta_i = R_i - R_0$. For each operation, we take the median value of
 $\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
 graphed in the figures in the following section. $\Delta_i$ represents the
 increase in memory usage due to memory management overheads caused by running
