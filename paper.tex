@@ -152,7 +152,8 @@ logic in the kernel, but results in additional overheads
 
 To determine which pages to swap out, Linux uses the Page Frame Reclamation
 subsystem. Choosing which pages to swap out is important because if the system
-swaps out pages that are about to be used, thrashing may be induced.
+swaps out pages that are about to be used, thrashing may be induced, in which
+the system wastes lots of time swapping out a page just swap it back in.
 
 The Linux Page Frame Reclamation Algorithm (PFRA) attempts to approximate LRU
 order. It uses a clock-like algorithm, in which a list of pages is scanned
@@ -207,8 +208,6 @@ processors, which gives high resolution cycle-level timestamps. We take a
 timestamp before and after each memory management operation in the workload and
 take the difference to get latency.
 
-% TODO: should we mention slab allocator?
-% (MM) I don't thinks so...
 To measure memory usage, we use the procfs's reporting on current memory usage.
 Where appropriate, we record the number of active
 \texttt{vm\_area\_struct}s in the system. Measuring kernel memory usage and
