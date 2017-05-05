@@ -619,26 +619,25 @@ on whether transparent hugepages are enabled. Not surprisingly, workloads that
 do not exhibit memory pressure do not incur kswapd overhead, as shown by the
 \texttt{rand} benchmark with hugepages off.
 
-As expected, the \texttt{rand} benchmark with hugepages on incurs the highest
-total overhead since it begins swapping very early. For this benchmark we
-observe an overhead of roughly 0.0002 jiffies per page memory touched after
-swapping begins. Also, kswapd runs for longer periods of time with longer
-intervals of sleep in between. This is most likely because the benchmark has
-some probability of retouching a page, so free memory is used more slowly, but
-kswapd also has to do more work to find pages that are inactive.
+In the \texttt{rand} benchmark with hugepages enabled, we observe an overhead
+of roughly 0.0002 jiffies per page of memory touched after swapping begins.
+Also, kswapd runs for longer periods of time with longer intervals of sleep in
+between. This is most likely because the benchmark has some probability of
+retouching a page, so free memory is used more slowly, but kswapd also has to
+do more work to find pages that have not been recently used.
 
-In contrast, the \texttt{cont} benchmark with hugepages disabled uses
-computational time at roughly 0.0572 jiffies per page of memory touched.
+In the \texttt{cont} benchmark with hugepages disabled, kswapd uses
+0.0572 jiffies per page of memory touched.
 kswapd runs more frequently and for shorter periods of time because new pages
-are touched very quickly, requiring faster reclamation, but because all pages
+are touched very quickly, requiring faster reclamation. But because all pages
 are only touched once, kswapd has to do very little work to choose pages to
 reclaim.
 
-Notice also that the \texttt{cont} benchmark with hugepages enabled spends
+The \texttt{cont} benchmark with hugepages enabled spends
 surprisingly little time in kswapd. We suspect that kswapd runs once and choose
 a large number of pages to swap out. Subsequently, both the workload and kswapd
 wait for I/O. This seems consistent with our previous results, in which some
-operations take on the order of seconds to complete, but we have not yet
+operations take hundreds of milliseconds to complete, but we have not yet
 verified it.
 
 ~\\ \textbf{Insights} 
@@ -646,7 +645,8 @@ verified it.
 The swapping system in Linux has complicated interactions with workloads and
 transparent hugepages. It is not obvious how to optimize a workload for better
 swapping behavior. Moreover, we see that under memory pressure, kswapd tends to
-run more often during page faults than in its own context.
+run more often during page faults than in its own context, causing very poor
+workload performance.
 
 \section{Related Work}
 
@@ -656,10 +656,10 @@ run more often during page faults than in its own context.
 %still relevant to our overall goal, is more directed at the second step of
 %building the tool.
 
-The emergence of new technology has in the past often required operating systems
-to change. New non-volatile memory technologies are making it possible to have
-terabytes of memory. Recent changes to memory management in Linux demonstrate a
-lot of focus on improving the scalability of its data structures
+
+New memory technologies are making it possible to have
+terabytes of memory. Recent changes to memory management in Linux demonstrate
+focus on improving the scalability of its data structures
 \cite{huang2016evolutionary}. 
 
 There have been efforts to reduce the
@@ -669,12 +669,10 @@ reduce wear on persistent memory cells \cite{corbet_persistent_progress,
 struct_page}. Other studies have suggested that page tables can also have high
 overhead \cite{simics}.
 
-RadixVM tries to overcome performance issues in highly
+RadixVM tries to mitigate performance issues in highly
 concurrent workloads due to serialization of memory management operations on
 kernel data structures \cite{radixvm}. This work demonstrates that many parts of
 existing memory management schemes are not scalable to larger systems.
-Similarly, in our work, we examine scalability limitations of memory
-management in the Linux kernel. 
 
 Traditionally, OS researchers and developers would benchmark and test 
 designs in new environments to demonstrate their efficacy before using them in
@@ -710,7 +708,7 @@ The Simics simulator uses demand paging for simulated environments.
 As long as the working set of
 the target system fits in the host memory, performance will be tolerable.
 However, in our work, we study OS behavior under workloads that
-actually use all available memory, where swapping causes disk latency to become the main
+actually use all available memory and swapping causes disk latency to become the main
 performance bottleneck. Moreover, the performance overhead of simulators like
 Simics tends to be impractical because system state needs to be maintained by
 the simulator \cite{simics}. We do not explore simulation further because it
@@ -723,16 +721,16 @@ storage and big data researchers to run benchmarks requiring terabytes of
 storage using much smaller storage devices.
 David physically stores only
 metadata and discards the contents of files. Reads to the disk causes David to
-generate data on the fly. This design choice is based on the observation that
+generate data on the fly. This design is based on the observation that
 most benchmarking frameworks do not care about the actual content of the files,
 and that most of the storage capacity of a drive tends to be data rather than
 metadata \cite{david}. The Exalt system uses a similar methodology for
 large-scale distributed storage systems \cite{exalt}. This methodology provides
 a promising direction for large-memory system studies. One may consider ignoring
-the contents of a process’s heap and only storing kernel data structures and a
-process’s code and stack segments. However, the common use of custom data
+the contents of a process's heap and only storing kernel data structures and
+process code and stack segments. However, the common use of custom data
 structures makes generating heap contents on the fly
-more difficult than generating disk. Moreover, on Linux, the kernel data structures for 1TB
+difficult. Moreover, on Linux, the kernel data structures for 1TB
 of memory may also exceed the size of physical memory on current systems
 \cite{simics}.
 
@@ -784,18 +782,17 @@ benchmarks impractical.
 %In conclusion, did you find all 7 jokes in the paper?
 
 \section{Conclusion}
-Terabyte-scale memory systems are poised to become commonplace in not too distant future.
-Developers and researchers need tools to study the behavior of such systems even before the actual
-deployments are avaialable. 
+Terabyte-scale memory systems are poised to become commonplace in the not too distant future.
+Developers and researchers need tools to study the behavior of such systems before they are available. 
 
-In this paper, we study the scalability of memory management 
-system of Linux Kernel which we believe is the first step toward building such tools. In particular, 
-we look at the scalability of \texttt{vm\_area\_struct},  
-swapping subsystem, and the effect of hugepages across a wide range of varying parameters
+In this paper, we study the scalability of the memory management 
+system of Linux, which we believe is the first step toward building such tools. In particular, 
+we look at the scalability of \texttt{vm\_area\_struct}  
+and the swapping subsystem across a wide range of varying parameters
 and workloads. 
 
 Our findings indicate that Linux's use of
-\texttt{vm\_area\_struct} tends to be sclable in the general case, but
+\texttt{vm\_area\_struct} tends to be scalable in the general case, but
 fragmented allocation patterns can cause increased computational and memory
 overheads. We further find that the use of 
 transparent hugepages can lead to early onset of memory pressure in applications
