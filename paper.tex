@@ -325,7 +325,7 @@ recorded for each experiment and reported in the next section.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
-    \caption{$\Delta_i$ adjusted with \texttt{control} for benchmarks. Note that
+    \caption{$\Delta_i$ as discussed in section \ref{ss_vm_area_struct}. Note that
     graphs of \texttt{frag} and \texttt{stride} overlap. Also, \texttt{cont} and
     \texttt{control} overlap.}
     \label{fig:mmap_mem_usage}
@@ -333,7 +333,9 @@ recorded for each experiment and reported in the next section.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/vm_area_struct_count}
-    \caption{Number of \texttt{vm\_area\_struct}s for benchmarks.}
+    \caption{Number of \texttt{vm\_area\_struct}s. The graphs of
+    \texttt{control} and \texttt{cont} workloads are almost coincident with the
+    x-axis.}
     \label{fig:vm_area_struct_count}
 \end{figure}
 
