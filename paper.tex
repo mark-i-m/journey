@@ -34,8 +34,8 @@ workloads we tested.
 \section{Introduction}
 
 Recent advances in memory technologies are making it possible for machines with
-large amounts of memory to become commonplace. Many current systems already
-have dozens or hundreds of gigabytes of memory. These technology advances can
+large amounts of memory to become commonplace.
+These technology advances can
 enable systems with terabytes of memory in the not very distant future. For
 example, non-volatile memory technologies, which have denser physical
 structures than traditional DRAM are making such large memories available and
@@ -85,8 +85,7 @@ necessary to understanding the experiments.
 \subsection{Virtual Memory Areas}
 
 A process may use the \texttt{mmap} system call to request that the kernel
-allocate part of its virtual address space. Accesses to memory addresses
-outside of allocated regions result in a segmentation fault.
+allocate part of its virtual address space.
 The Linux kernel keeps track of which portions of a process's address space
 have been allocated using the \texttt{vm\_area\_struct} data structure. Because
 processes may map a number of regions, including shared objects, stack, heap,
@@ -122,10 +121,10 @@ structs.
 
 \subsection{Swapping}
 
-Under memory pressure, the kernel may choose to write some pages of memory to
-disk and then free those pages for use. Memory mapped files are written back to
-their backing files, but anonymous memory is written to portion of the disk
-called swap space. We focus on anonymous memory in our experiments.
+Under memory pressure, the kernel may free some pages for use by writing some
+pages to disk. Memory mapped files are written back to their backing files,
+but anonymous memory is written to portion of the disk called swap space. We
+focus on anonymous memory in our experiments.
 
 Before swapping a page out to disk, the kernel must reserve a slot for the page
 in the swap space, unmap it from the process's address space by removing its
@@ -153,8 +152,7 @@ logic in the kernel, but results in additional overheads
 
 To determine which pages to swap out, Linux uses the Page Frame Reclamation
 subsystem. Choosing which pages to swap out is important because if the system
-swaps out pages that are about to be used, thrashing may be induced, in which
-the system wastes lots of time swapping out a page just swap it back in.
+swaps out pages that are about to be used, thrashing may be induced.
 
 The Linux Page Frame Reclamation Algorithm (PFRA) attempts to approximate LRU
 order. It uses a clock-like algorithm, in which a list of pages is scanned
@@ -164,8 +162,8 @@ condidate for reclamation.
 The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
 intervals and sleeps in between. Also, it may be invoked if the system detects
 that memory has gone below a threshold. kswapd will continue to run until enough
-pages are freed to bring the free memory pool above some threashold. Then,
-kswapd goes back to sleep \cite{utlk}.  One concern with systems that have a large memory
+pages are freed to bring the free memory pool above some threshold before going to
+sleep \cite{utlk}.  One concern with systems that have a large memory
 usage is that kswapd may expend significant CPU time scanning through hundreds
 of thousands of pages.
 
@@ -534,8 +532,8 @@ accesses complete in less than 20ms. Moreover, notice that the size of the
 swap file makes very little difference in this workload because the disk has to
 do random seeks regardless of swap file size.
 
-The \texttt{cont} benchmark has more surprising results. Notice that Figure
-\ref{fig:swap_time_cont} has a logarithmic y-scale. The system only begins to
+The \texttt{cont} benchmark has more surprising results.
+The system only begins to
 swap after about 4M operations, as before. Unlike the \texttt{rand} benchmark, we see a
 number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
