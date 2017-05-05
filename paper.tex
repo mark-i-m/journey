@@ -344,29 +344,25 @@ for the workloads described in section \ref{ss_vm_area_struct}.
 
 The
 \texttt{cont} workload coincides with the \texttt{control} workload, as only the
-first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. The subsequent
-operations are subsumed by the initial \texttt{vm\_area\_struct} because the mapped
-regions are adjacent, and hence the memory usage does not increase despite the
-large number of \texttt{mmap} operations.  
+first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. Subsequent
+operations expand this \texttt{vm\_area\_struct} because the mapped
+regions are adjacent, avoiding extra memory usage.  
 
 The \texttt{stride} workload allocates a
 \texttt{vm\_area\_struct} for each operation due to the separation of
 allocations in the virtual address space. As a result, the memory usage
-increases significantly as more memory is consumed with each \texttt{mmap} operation.
-
+increases linearly with the number of \texttt{mmap}s.
 This is also the case for the \texttt{frag} workload which breaks up a single
-\texttt{vm\_area\_struct} for a large area in the virtual address space into
-multiple smaller areas, which results in the allocation of a new structure for
-every resize operation. 
+\texttt{vm\_area\_struct} for a large area into
+multiple smaller areas. 
 
 The \texttt{rand} workload initially creates a new
 \texttt{vm\_area\_struct} struct for each \texttt{mmap} operation. Eventually, these
 allocations form larger contiguous allocations when two or more regions are
-mapped next to each other, resulting in a single \texttt{vm\_area\_struct} being
-used for that range. As a result, the memory usage begins to taper off and
+mapped next to each other, resulting in a single \texttt{vm\_area\_struct}. As a result, the memory usage begins to taper off and
 even decreases slightly as multiple \texttt{vm\_area\_struct}s are collapsed to
 single structures. This is made clear by Figure \ref{fig:vm_area_struct_count}
-which shows the growth \texttt{vm\_area\_struct} counts for each workload.
+which shows the number of \texttt{vm\_area\_struct}s for each workload.
 
 ~\\ \textbf{Insights}
 
@@ -413,18 +409,17 @@ most accesses. This operation takes $O(\log n)$ time, where $n$ is the number of
 virtual memory areas. The logarithmic behavior is visible in the plots for the
 benchmarks in Figure \ref{fig:mmap_latency}.
 
-The \texttt{frag} benchmark takes the most time of any benchmark. When a region of the
-address space is being expanded, the kernel is forced to unmap it and map a new
-area elsewhere in the address space. This operation needs creation of a new
-\texttt{vm\_area\_struct}.  The kernel also must search through the red-black
-tree, though it never finds a node which can be expanded to include the new
-mapping. Then, an insertion on the tree is needed, possibly including
-rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} needs to be
-removed from the tree. 
+The \texttt{frag} benchmark takes the most time of any benchmark. When a region
+of the address space is being expanded, the kernel is forced to unmap it and
+map a new area elsewhere in the address space.  The kernel must search through
+the red-black tree, though it never finds a node which can be expanded to
+include the new mapping.  Then, the existing \texttt{ vm\_area\_struct} needs
+to be removed from the tree.  Finally, a new \texttt{vm\_area\_struct} is
+created and inserted into the tree.
 
 The \texttt{stride} workload is very similar to \texttt{frag} because it will also force the
-kernel to always create a new structure and insert it into the tree after
-traversing the tree first. However, it does not need to delete an existing
+kernel to always create a new structure and insert it after
+searching the tree. However, it does not need to delete an existing
 structure, which causes it to be faster than the \texttt{frag} benchmark.
 
 Finally, the \texttt{rand} workload will also search through the red-black tree first,
@@ -464,8 +459,8 @@ result, the memory used by the workload is almost equal to the amount of memory
 it has written to. The RSS thus increases linearly until the system begins to
 swap when the number of free pages falls below a threshold. 
 
-The \texttt{rand} workload, on the other hand, writes to pages that are likely not
-adjacent and likely not subpages of a single huge page. As a result, a huge page
+The \texttt{rand} workload, on the other hand, writes to pages that are 
+not subpages of the same huge page. As a result, a huge page
 is allocated with almost every write, and system memory is exhausted and begins
 swapping very quickly (20,000 operations compared to 4 million with the \texttt{cont} benchmark). Memory made available by kswapd is quickly consumed by
 further allocations. Hence, the memory used by the workload continues to stay
@@ -524,14 +519,15 @@ prevent early onset of memory pressure.
         Latency $\le$ 50ms & 99.97\% & 7.39s \\
         Latency $>$ 50ms & 0.03\% & 18.9s \\
     \end{tabular}
+    \label{fig:latency_table}
 \end{figure}
 
 This experiment is designed to measure the impact of swapping on memory
 operation latency.
 
-The overall behavior is as expected. In the \texttt{rand} benchmark, as before, all
-memory is exhausted quickly, and the benchmark induces swapping soon after the
-benchmark begins. Many memory accesses thus take milliseconds to complete
+In the \texttt{rand} benchmark, as before, all
+memory is exhausted, and swapping begins very soon. Many memory accesses 
+thus take milliseconds to complete
 because they require paging in or out, which is slow due to disk access.
 Even so, the majority of benchmark run time comes from a minority of accesses.
 Figure \ref{fig:swap_time_rand_cdf} shows that as much as 95\% of memory
@@ -547,7 +543,8 @@ number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
 of all accesses done after swapping starts. However, Figure
 \ref{fig:swap_time_cdf} shows that these few accesses form a majority of run
-time; they impact performance significantly.
+time; they impact performance significantly. Figure \ref{fig:latency_table} summarizes
+this trend.
 
 We also find that in the \texttt{cont} benchmark, a larger swap file actually has
 slightly more of these slow memory accesses. We believe this has to do with the
