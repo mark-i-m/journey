@@ -393,9 +393,9 @@ Figure \ref{fig:mmap_latency} shows the time taken
 per \texttt{mmap} operation as it varies with the total amount of memory allocated
 so far by the workload. 
 
-It can be seen that for continuous \texttt{mmap}s the time is not only the
-lowest but is also invariant with the total number of \texttt{mmap}s done so
-far. There are two reasons for this. 
+For continuous \texttt{mmap}s the time is not only the lowest of any benchmark
+but is also invariant with the total number of \texttt{mmap}s done so far.
+There are two reasons for this. 
 
 First, when a continuous \texttt{mmap} happens, the
 kernel memory allocator does not need to create a new \texttt{vm\_area\_struct}.
@@ -409,7 +409,7 @@ red-black tree. In the \texttt{cont} benchmark, this cached struct is always
 conveniently used.
 
 For the other workloads, a search through the red-black tree is often needed on
-most accesses. This operation takes $O(log n)$ time, where $n$ is the number of
+most accesses. This operation takes $O(\log n)$ time, where $n$ is the number of
 virtual memory areas. The logarithmic behavior is visible in the plots for the
 benchmarks in Figure \ref{fig:mmap_latency}.
 
