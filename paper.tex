@@ -15,35 +15,32 @@
 \begin{abstract}
     \small 
 
-Much research is currently being done to study how non-volatile and large
+Much research is currently being done on how non-volatile and large
 memory systems would change system design.  We see the need for a lightweight
-tool to study such systems at scale with real workloads.  The first step
+tool to study such systems at full scale with real workloads. The first step
 towards building such a tool is to study the scalability of existing memory
-management systems.  We find that in most cases, Linux kernel memory management
+management systems. We find that in most cases, Linux kernel memory management
 scales well with large amounts of physical memory. However, workloads that
-allocated many virtual memory areas can accumulate significant memory and
-computational overhead due to kernel metadata.     Furthermore, in certain
-situations, transparent hugepages can nullify the benefits from better TLB
-reaches by inducing memory pressure earlier, even for workloads that would
-otherwise not experience it.  Finally, we see that the tail
-swapping latencies can account for over a majority of runtime for the
+allocate many virtual memory areas can accumulate significant memory and
+computational overhead due to kernel metadata. Furthermore, in some cases, 
+transparent hugepages can nullify the benefits from better TLB
+reach by inducing memory pressure earlier. Finally, we see that the tail
+swapping latencies can account for a majority of runtime for the
 workloads we tested.
 
 \end{abstract}
 
 \section{Introduction}
 
-Recent advances in memory technologies are making it possible for machines with
-large amounts of memory to become commonplace.
-These technology advances can
-enable systems with terabytes of memory in the not very distant future. For
-example, non-volatile memory technologies, which have denser physical
-structures than traditional DRAM are making such large memories available and
-more accessible \cite{xpoint}.
+Recent advances in memory technologies can enable systems with terabytes of
+memory to become commonplace in the not very distant future. For example,
+non-volatile memory technologies, which have denser physical structures than
+traditional DRAM are making large memories available and more accessible
+\cite{xpoint}.
 
-Much research is currently being done to study how non-volatile and large
+Much research is currently being done on how non-volatile and large
 memory systems would change system design. HP has been working on a system
-which it calls ``The Machine'', in which hundreds of cores have access to a
+called ``The Machine'', in which hundreds of cores have access to a
 multi-petabyte shared memory pool \cite{hp_machine}. Intel and
 Micron have announced their 3D Xpoint non-volatile memory technology, making
 dense, fast, persistent memory comercially available \cite{xpoint}.
@@ -61,13 +58,12 @@ towards building such a tool is to identify bottlenecks in managing large
 memories that make a tool difficult to develop. 
 
 In particular, we look at the case of a single process using a large amount of
-memory in a current Linux system. We run experiments to identify the scalability
-of the Linux memory management system across multiple dimensions. First, we
-measure the overhead of \texttt{vm\_area\_struct}, a common bookkeeping data
-structure in the Linux kernel. Then, we measure the memory and processing
-overheads of swapping. From these data, we extrapolate to systems running with
-more memory; many of the behaviors we identify would be aggravated by having or
-using more memory.
+memory in a current Linux system. We run experiments to identify the
+scalability of the Linux memory management system across multiple dimensions.
+First, we measure the overhead of \texttt{vm\_area\_struct}, a common
+bookkeeping data structure in the Linux kernel. Then, we measure the memory and
+processing overheads of swapping.  Many of the behaviors we identify would be
+aggravated by having or using more memory.
 
 While these experiments are not comprehensive, we believe they can offer
 insights that are useful both for building a research tool and for building
@@ -78,8 +74,7 @@ persistent memory system in particular.
 \section{Background}
 
 In our methodology, we run several experiments to measure the scalability of
-the Linux memory management system. Each experiment is designed to probe a
-different aspect of the system. This section gives some background knowledge
+the Linux memory management system. This section gives some background knowledge
 necessary to understanding the experiments.
 
 \subsection{Virtual Memory Areas}
@@ -95,7 +90,7 @@ Linux's performance.
 When a process maps a region, a \texttt{vm\_area\_struct} is created, but no
 memory is allocated. When a process first touches a page, a page fault occurs
 and the processor traps to a page fault handler, which allocates memory and
-sets up a page table entry for a valid access. This is called demand paging.
+sets up a page table entry for a valid access. This is called \texttt{demand paging}.
 
 For demand paging to work efficiently, the correct \texttt{vm\_area\_struct}
 needs to be found quickly. Linux caches the most recently used region and
@@ -121,20 +116,20 @@ structs.
 
 \subsection{Swapping}
 
-Under memory pressure, the kernel may free some pages for use by writing some
-pages to disk. Memory mapped files are written back to their backing files,
-but anonymous memory is written to portion of the disk called swap space. We
+Under memory pressure, the kernel may free some pages for use by writing
+them to disk. Memory mapped files are written back to their backing files,
+but anonymous memory is written to a portion of the disk called swap space. We
 focus on anonymous memory in our experiments.
 
 Before swapping a page out to disk, the kernel must reserve a slot for the page
-in the swap space, unmap it from the process's address space by removing its
-page table entries and flushing the TLB, and record which swap slot corresponds
+in the swap space; unmap it from the process's address space by removing its
+page table entries and flushing the TLB; and record which swap slot corresponds
 to the page.
 
-On Linux, the system may have multiple swap spaces in the form of a swap disk
-partition or of swap files on a filesystem. Both have a similar format on disk,
+On Linux, the system may have multiple swap spaces in the form of swap disk
+partitions or swap files on a filesystem. Both have a similar format on disk,
 in which the space is broken into a number of swap slots large enough for one
-page. For each of these swap spaces, the kernel keeps a swap map, which records
+4K page. For each of these swap spaces, the kernel keeps a swap map, which records
 the usage of each swap slot so that it can find and allocate them quickly.
 
 Unmapping a page from a process's address space involves simply marking its page
@@ -153,20 +148,21 @@ logic in the kernel, but results in additional overheads
 To determine which pages to swap out, Linux uses the Page Frame Reclamation
 subsystem. Choosing which pages to swap out is important because if the system
 swaps out pages that are about to be used, thrashing may be induced, in which
-the system wastes lots of time swapping out a page just swap it back in.
+the system wastes time swapping out a page just to swap it back in.
 
 The Linux Page Frame Reclamation Algorithm (PFRA) attempts to approximate LRU
 order. It uses a clock-like algorithm, in which a list of pages is scanned
 twice. Roughly speaking, if a page is not used between scans, then it is a
-condidate for reclamation.
+candidate for reclamation.
 
-The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
-intervals and sleeps in between. Also, it may be invoked if the system detects
-that memory has gone below a threshold. kswapd will continue to run until enough
-pages are freed to bring the free memory pool above some threshold before going to
-sleep \cite{utlk}.  One concern with systems that have a large memory
-usage is that kswapd may expend significant CPU time scanning through hundreds
-of thousands of pages.
+The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at
+regular intervals and sleeps in between. Also, it is invoked if the system
+detects that memory has gone below a threshold such as during a page fault.
+kswapd will continue to run until enough pages are freed to bring the free
+memory pool above some threshold before going to sleep \cite{utlk}.  This may
+cause the faulting process to block for a while. One concern with systems that
+have a large memory usage is that kswapd may expend significant CPU time
+scanning through hundreds of thousands of pages.
 
 \section{Methodology}
 
@@ -236,10 +232,11 @@ Each benchmark was run 5 times and the results aggregated as described below. We
 reboot the machine when switching to a different benchmark, but keep the machine
 running continually during the runs of the same benchmark. 
 
-Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as the
-$i$-th measurement of $R$ during a run ($i = 0, 1, ..., 2^{20}$). System memory
-usage is known to jitter in Linux \cite{jitter}. To adjust for this jitter, we
-define $\Delta_i = R_i - R_0$. For each operation, we take the median value of
+Assume the memory usage of the rest of the system is $R$. We denote $R_i$ as
+the $i$-th measurement of $R$ during a run ($i = 0, 1, ..., 2^{20}$). $R_0$
+corresponds to the measurement before the first operation. System memory usage
+is known to jitter in Linux \cite{jitter}. To adjust for this jitter, we define
+$\Delta_i = R_i - R_0$. For each operation, we take the median value of
 $\Delta_i$ across the 5 runs to reduce jitter further.  This is the value
 graphed in the figures in the following section. $\Delta_i$ represents the
 increase in memory usage due to memory management overheads caused by running
