@@ -208,8 +208,6 @@ processors, which gives high resolution cycle-level timestamps. We take a
 timestamp before and after each memory management operation in the workload and
 take the difference to get latency.
 
-% TODO: should we mention slab allocator?
-% (MM) I don't thinks so...
 To measure memory usage, we use the procfs's reporting on current memory usage.
 Where appropriate, we record the number of active
 \texttt{vm\_area\_struct}s in the system. Measuring kernel memory usage and
