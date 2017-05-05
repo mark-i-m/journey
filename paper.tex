@@ -325,7 +325,7 @@ recorded for each experiment and reported in the next section.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
-    \caption{$\Delta_i$ adjusted with \texttt{control} for benchmarks. Note that
+    \caption{$\Delta_i$ as discussed in section \ref{ss_vm_area_struct}. Note that
     graphs of \texttt{frag} and \texttt{stride} overlap. Also, \texttt{cont} and
     \texttt{control} overlap.}
     \label{fig:mmap_mem_usage}
@@ -333,7 +333,9 @@ recorded for each experiment and reported in the next section.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/vm_area_struct_count}
-    \caption{Number of \texttt{vm\_area\_struct}s for benchmarks.}
+    \caption{Number of \texttt{vm\_area\_struct}s. The graphs of
+    \texttt{control} and \texttt{cont} workloads are almost coincident with the
+    x-axis.}
     \label{fig:vm_area_struct_count}
 \end{figure}
 
@@ -342,29 +344,25 @@ for the workloads described in section \ref{ss_vm_area_struct}.
 
 The
 \texttt{cont} workload coincides with the \texttt{control} workload, as only the
-first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. The subsequent
-operations are subsumed by the initial \texttt{vm\_area\_struct} because the mapped
-regions are adjacent, and hence the memory usage does not increase despite the
-large number of \texttt{mmap} operations.  
+first \texttt{mmap} operation allocates a \texttt{vm\_area\_struct}. Subsequent
+operations expand this \texttt{vm\_area\_struct} because the mapped
+regions are adjacent, avoiding extra memory usage.  
 
 The \texttt{stride} workload allocates a
 \texttt{vm\_area\_struct} for each operation due to the separation of
 allocations in the virtual address space. As a result, the memory usage
-increases significantly as more memory is consumed with each \texttt{mmap} operation.
-
+increases linearly with the number of \texttt{mmap}s.
 This is also the case for the \texttt{frag} workload which breaks up a single
-\texttt{vm\_area\_struct} for a large area in the virtual address space into
-multiple smaller areas, which results in the allocation of a new structure for
-every resize operation. 
+\texttt{vm\_area\_struct} for a large area into
+multiple smaller areas. 
 
 The \texttt{rand} workload initially creates a new
 \texttt{vm\_area\_struct} struct for each \texttt{mmap} operation. Eventually, these
 allocations form larger contiguous allocations when two or more regions are
-mapped next to each other, resulting in a single \texttt{vm\_area\_struct} being
-used for that range. As a result, the memory usage begins to taper off and
+mapped next to each other, resulting in a single \texttt{vm\_area\_struct}. As a result, the memory usage begins to taper off and
 even decreases slightly as multiple \texttt{vm\_area\_struct}s are collapsed to
 single structures. This is made clear by Figure \ref{fig:vm_area_struct_count}
-which shows the growth \texttt{vm\_area\_struct} counts for each workload.
+which shows the number of \texttt{vm\_area\_struct}s for each workload.
 
 ~\\ \textbf{Insights}
 
@@ -391,9 +389,9 @@ Figure \ref{fig:mmap_latency} shows the time taken
 per \texttt{mmap} operation as it varies with the total amount of memory allocated
 so far by the workload. 
 
-It can be seen that for continuous \texttt{mmap}s the time is not only the
-lowest but is also invariant with the total number of \texttt{mmap}s done so
-far. There are two reasons for this. 
+For continuous \texttt{mmap}s the time is not only the lowest of any benchmark
+but is also invariant with the total number of \texttt{mmap}s done so far.
+There are two reasons for this. 
 
 First, when a continuous \texttt{mmap} happens, the
 kernel memory allocator does not need to create a new \texttt{vm\_area\_struct}.
@@ -407,22 +405,21 @@ red-black tree. In the \texttt{cont} benchmark, this cached struct is always
 conveniently used.
 
 For the other workloads, a search through the red-black tree is often needed on
-most accesses. This operation takes $O(log n)$ time, where $n$ is the number of
+most accesses. This operation takes $O(\log n)$ time, where $n$ is the number of
 virtual memory areas. The logarithmic behavior is visible in the plots for the
 benchmarks in Figure \ref{fig:mmap_latency}.
 
-The \texttt{frag} benchmark takes the most time of any benchmark. When a region of the
-address space is being expanded, the kernel is forced to unmap it and map a new
-area elsewhere in the address space. This operation needs creation of a new
-\texttt{vm\_area\_struct}.  The kernel also must search through the red-black
-tree, though it never finds a node which can be expanded to include the new
-mapping. Then, an insertion on the tree is needed, possibly including
-rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} needs to be
-removed from the tree. 
+The \texttt{frag} benchmark takes the most time of any benchmark. When a region
+of the address space is being expanded, the kernel is forced to unmap it and
+map a new area elsewhere in the address space.  The kernel must search through
+the red-black tree, though it never finds a node which can be expanded to
+include the new mapping.  Then, the existing \texttt{ vm\_area\_struct} needs
+to be removed from the tree.  Finally, a new \texttt{vm\_area\_struct} is
+created and inserted into the tree.
 
 The \texttt{stride} workload is very similar to \texttt{frag} because it will also force the
-kernel to always create a new structure and insert it into the tree after
-traversing the tree first. However, it does not need to delete an existing
+kernel to always create a new structure and insert it after
+searching the tree. However, it does not need to delete an existing
 structure, which causes it to be faster than the \texttt{frag} benchmark.
 
 Finally, the \texttt{rand} workload will also search through the red-black tree first,
