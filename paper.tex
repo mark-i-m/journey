@@ -534,8 +534,8 @@ accesses complete in less than 20ms. Moreover, notice that the size of the
 swap file makes very little difference in this workload because the disk has to
 do random seeks regardless of swap file size.
 
-The \texttt{cont} benchmark has more surprising results. Notice that Figure
-\ref{fig:swap_time_cont} has a logarithmic y-scale. The system only begins to
+The \texttt{cont} benchmark has more surprising results.
+The system only begins to
 swap after about 4M operations, as before. Unlike the \texttt{rand} benchmark, we see a
 number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
