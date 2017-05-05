@@ -409,18 +409,17 @@ most accesses. This operation takes $O(\log n)$ time, where $n$ is the number of
 virtual memory areas. The logarithmic behavior is visible in the plots for the
 benchmarks in Figure \ref{fig:mmap_latency}.
 
-The \texttt{frag} benchmark takes the most time of any benchmark. When a region of the
-address space is being expanded, the kernel is forced to unmap it and map a new
-area elsewhere in the address space. This operation needs creation of a new
-\texttt{vm\_area\_struct}.  The kernel also must search through the red-black
-tree, though it never finds a node which can be expanded to include the new
-mapping. Then, an insertion on the tree is needed, possibly including
-rebalancing. Moreover, the existing \texttt{ vm\_area\_struct} needs to be
-removed from the tree. 
+The \texttt{frag} benchmark takes the most time of any benchmark. When a region
+of the address space is being expanded, the kernel is forced to unmap it and
+map a new area elsewhere in the address space.  The kernel must search through
+the red-black tree, though it never finds a node which can be expanded to
+include the new mapping.  Then, the existing \texttt{ vm\_area\_struct} needs
+to be removed from the tree.  Finally, a new \texttt{vm\_area\_struct} is
+created and inserted into the tree.
 
 The \texttt{stride} workload is very similar to \texttt{frag} because it will also force the
-kernel to always create a new structure and insert it into the tree after
-traversing the tree first. However, it does not need to delete an existing
+kernel to always create a new structure and insert it after
+searching the tree. However, it does not need to delete an existing
 structure, which causes it to be faster than the \texttt{frag} benchmark.
 
 Finally, the \texttt{rand} workload will also search through the red-black tree first,
