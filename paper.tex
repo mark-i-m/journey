@@ -716,7 +716,7 @@ The Simics simulator uses demand paging for simulated environments.
 As long as the working set of
 the target system fits in the host memory, performance will be tolerable.
 However, in our work, we study OS behavior under workloads that
-actually use all available memory, where swapping causes disk latency to become the main
+actually use all available memory and swapping causes disk latency to become the main
 performance bottleneck. Moreover, the performance overhead of simulators like
 Simics tends to be impractical because system state needs to be maintained by
 the simulator \cite{simics}. We do not explore simulation further because it
@@ -729,16 +729,16 @@ storage and big data researchers to run benchmarks requiring terabytes of
 storage using much smaller storage devices.
 David physically stores only
 metadata and discards the contents of files. Reads to the disk causes David to
-generate data on the fly. This design choice is based on the observation that
+generate data on the fly. This design is based on the observation that
 most benchmarking frameworks do not care about the actual content of the files,
 and that most of the storage capacity of a drive tends to be data rather than
 metadata \cite{david}. The Exalt system uses a similar methodology for
 large-scale distributed storage systems \cite{exalt}. This methodology provides
 a promising direction for large-memory system studies. One may consider ignoring
-the contents of a process’s heap and only storing kernel data structures and a
-process’s code and stack segments. However, the common use of custom data
+the contents of a process's heap and only storing kernel data structures and
+process code and stack segments. However, the common use of custom data
 structures makes generating heap contents on the fly
-more difficult than generating disk. Moreover, on Linux, the kernel data structures for 1TB
+difficult. Moreover, on Linux, the kernel data structures for 1TB
 of memory may also exceed the size of physical memory on current systems
 \cite{simics}.
 
@@ -790,18 +790,17 @@ benchmarks impractical.
 %In conclusion, did you find all 7 jokes in the paper?
 
 \section{Conclusion}
-Terabyte-scale memory systems are poised to become commonplace in not too distant future.
-Developers and researchers need tools to study the behavior of such systems even before the actual
-deployments are avaialable. 
+Terabyte-scale memory systems are poised to become commonplace in the not too distant future.
+Developers and researchers need tools to study the behavior of such systems before they are available. 
 
-In this paper, we study the scalability of memory management 
-system of Linux Kernel which we believe is the first step toward building such tools. In particular, 
-we look at the scalability of \texttt{vm\_area\_struct},  
-swapping subsystem, and the effect of hugepages across a wide range of varying parameters
+In this paper, we study the scalability of the memory management 
+system of Linux, which we believe is the first step toward building such tools. In particular, 
+we look at the scalability of \texttt{vm\_area\_struct}  
+and the swapping subsystem across a wide range of varying parameters
 and workloads. 
 
 Our findings indicate that Linux's use of
-\texttt{vm\_area\_struct} tends to be sclable in the general case, but
+\texttt{vm\_area\_struct} tends to be scalable in the general case, but
 fragmented allocation patterns can cause increased computational and memory
 overheads. We further find that the use of 
 transparent hugepages can lead to early onset of memory pressure in applications
