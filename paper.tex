@@ -74,8 +74,7 @@ persistent memory system in particular.
 \section{Background}
 
 In our methodology, we run several experiments to measure the scalability of
-the Linux memory management system. Each experiment is designed to probe a
-different aspect of the system. This section gives some background knowledge
+the Linux memory management system. This section gives some background knowledge
 necessary to understanding the experiments.
 
 \subsection{Virtual Memory Areas}
@@ -91,7 +90,7 @@ Linux's performance.
 When a process maps a region, a \texttt{vm\_area\_struct} is created, but no
 memory is allocated. When a process first touches a page, a page fault occurs
 and the processor traps to a page fault handler, which allocates memory and
-sets up a page table entry for a valid access. This is called demand paging.
+sets up a page table entry for a valid access. This is called \texttt{demand paging}.
 
 For demand paging to work efficiently, the correct \texttt{vm\_area\_struct}
 needs to be found quickly. Linux caches the most recently used region and
@@ -117,20 +116,20 @@ structs.
 
 \subsection{Swapping}
 
-Under memory pressure, the kernel may free some pages for use by writing some
-pages to disk. Memory mapped files are written back to their backing files,
-but anonymous memory is written to portion of the disk called swap space. We
+Under memory pressure, the kernel may free some pages for use by writing
+them to disk. Memory mapped files are written back to their backing files,
+but anonymous memory is written to a portion of the disk called swap space. We
 focus on anonymous memory in our experiments.
 
 Before swapping a page out to disk, the kernel must reserve a slot for the page
-in the swap space, unmap it from the process's address space by removing its
-page table entries and flushing the TLB, and record which swap slot corresponds
+in the swap space; unmap it from the process's address space by removing its
+page table entries and flushing the TLB; and record which swap slot corresponds
 to the page.
 
-On Linux, the system may have multiple swap spaces in the form of a swap disk
-partition or of swap files on a filesystem. Both have a similar format on disk,
+On Linux, the system may have multiple swap spaces in the form of swap disk
+partitions or swap files on a filesystem. Both have a similar format on disk,
 in which the space is broken into a number of swap slots large enough for one
-page. For each of these swap spaces, the kernel keeps a swap map, which records
+4K page. For each of these swap spaces, the kernel keeps a swap map, which records
 the usage of each swap slot so that it can find and allocate them quickly.
 
 Unmapping a page from a process's address space involves simply marking its page
@@ -149,12 +148,12 @@ logic in the kernel, but results in additional overheads
 To determine which pages to swap out, Linux uses the Page Frame Reclamation
 subsystem. Choosing which pages to swap out is important because if the system
 swaps out pages that are about to be used, thrashing may be induced, in which
-the system wastes lots of time swapping out a page just swap it back in.
+the system wastes time swapping out a page just to swap it back in.
 
 The Linux Page Frame Reclamation Algorithm (PFRA) attempts to approximate LRU
 order. It uses a clock-like algorithm, in which a list of pages is scanned
 twice. Roughly speaking, if a page is not used between scans, then it is a
-condidate for reclamation.
+candidate for reclamation.
 
 The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at regular
 intervals and sleeps in between. Also, it may be invoked if the system detects
