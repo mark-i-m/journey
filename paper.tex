@@ -591,7 +591,19 @@ still relevant to our overall goal, is more directed at the second step of
 building the tool.
 
 The emergence of new technology has in the past often required operating systems
-to change. Traditionally, OS researchers and developers benchmark and test their
+to change. A study of recent changes to memory management in Linux has found that there
+has been a lot of focus on improving the scalability of data structures used in
+the Linux memory manager \cite{huang2016evolutionary}. Since systems with
+persistent memory are expected to have large amounts of memory, there have been
+efforts to reduce the overheads of \texttt{struct page}. This is because these
+structures can consume several gigabytes of memory for systems with terabytes
+of persistent memory \cite{corbet_persistent_progress}. These structures need
+to be stored in volatile memory not only because they need to be accessed
+quickly for performance reasons, but also to avoid wearing out of persistent
+memory due to frequent writes to this data structure. Patches proposed to the
+Linux kernel have proposed getting rid of the \texttt{struct page} altogether.
+
+Traditionally, OS researchers and developers would benchmark and test such
 solutions in new environments to demonstrate their efficacy before using them in
 real systems. However, researchers do not always have access to new technology
 for practical reasons; for example, large memory systems are still too expensive
@@ -711,22 +723,6 @@ page}, \texttt{struct vm\_area\_struct}, and page tables tend to comprise a
 large portion of memory management overhead \cite{simics, struct_page}. 
 
 %In conclusion, did you find all 7 jokes in the paper?
-
-(TODO: where to put this paragraph?)
-A study of recent changes to memory management in Linux has found that there
-has been a lot of focus on improving the scalability of data structures used in
-the Linux memory manager \cite{huang2016evolutionary}. Since systems with
-persistent memory are expected to have large amounts of memory, there have been
-efforts to reduce the overheads of \texttt{struct page}. This is because these
-structures can consume several gigabytes of memory for systems with terabytes
-of persistent memory \cite{corbet_persistent_progress}. These structures need
-to be stored in volatile memory not only because they need to be accessed
-quickly for performance reasons, but also to avoid wearing out of persistent
-memory due to frequent writes to this data structure. Patches proposed to the
-Linux kernel have proposed getting rid of the \texttt{struct page} altogether, but the
-complexity associated with such radical changes have hindered their acceptance
-by the community.
-
 
 \section{Conclusion}
 Terabyte-scale memory systems are poised to become commonplace in not too distant future.
