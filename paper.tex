@@ -462,8 +462,8 @@ result, the memory used by the workload is almost equal to the amount of memory
 it has written to. The RSS thus increases linearly until the system begins to
 swap when the number of free pages falls below a threshold. 
 
-The \texttt{rand} workload, on the other hand, writes to pages that are likely not
-adjacent and likely not subpages of a single huge page. As a result, a huge page
+The \texttt{rand} workload, on the other hand, writes to pages that are 
+not subpages of the same huge page. As a result, a huge page
 is allocated with almost every write, and system memory is exhausted and begins
 swapping very quickly (20,000 operations compared to 4 million with the \texttt{cont} benchmark). Memory made available by kswapd is quickly consumed by
 further allocations. Hence, the memory used by the workload continues to stay
@@ -522,14 +522,15 @@ prevent early onset of memory pressure.
         Latency $\le$ 50ms & 99.97\% & 7.39s \\
         Latency $>$ 50ms & 0.03\% & 18.9s \\
     \end{tabular}
+    \label{fig:latency_table}
 \end{figure}
 
 This experiment is designed to measure the impact of swapping on memory
 operation latency.
 
-The overall behavior is as expected. In the \texttt{rand} benchmark, as before, all
-memory is exhausted quickly, and the benchmark induces swapping soon after the
-benchmark begins. Many memory accesses thus take milliseconds to complete
+In the \texttt{rand} benchmark, as before, all
+memory is exhausted, and swapping begins very soon. Many memory accesses 
+thus take milliseconds to complete
 because they require paging in or out, which is slow due to disk access.
 Even so, the majority of benchmark run time comes from a minority of accesses.
 Figure \ref{fig:swap_time_rand_cdf} shows that as much as 95\% of memory
@@ -545,7 +546,8 @@ number of operations that take hundreds of milliseconds. Figure
 \ref{fig:swap_time_cont_cdf} shows that these only form a fraction of a percent
 of all accesses done after swapping starts. However, Figure
 \ref{fig:swap_time_cdf} shows that these few accesses form a majority of run
-time; they impact performance significantly.
+time; they impact performance significantly. Figure \ref{fig:latency_table} summarizes
+this trend.
 
 We also find that in the \texttt{cont} benchmark, a larger swap file actually has
 slightly more of these slow memory accesses. We believe this has to do with the
