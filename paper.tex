@@ -666,27 +666,27 @@ swap pages to disk. The resulting poor performance can cause inaccurate
 performance measurements when running benchmarks. It can also make large
 benchmarks impractical.
 
-Interestingly, many of non-volatile memory technologies are making their ways
-into storage drives. One potential use of fast storage devices is for fast
-swapping space. In such a system, the overhead of swapping may become a
-bottleneck.
-
-Prefetching pages from swap space can offer a way to mitigate the overhead of
-memory overcommitment, possibly making large virtual machines a viable
-mechanism for studying large memory systems. When there is significant memory
-pressure, even pages which are likely to be accessed soon are swapped out to
-disk. They are faulted back into memory when accessed, resulting in significant
-performance cost.  Charm++ uses a programming model where computations can be
-scheduled by the language runtime. A designated thread can prefetch pages
-required by a computation, averting page faults \cite{charmpp}. Rather than
-implement page prefetching in a language runtime, one might implement a
-prefetcher in the swapping subsystem, making it general purpose. A large body
-of work already exists on hardware prefetching for processor caches, on which a
-swap prefetcher might draw for inspiration \cite{prefetching}. However, this
-approach can only work if page access patterns are predictable. Moreover, the
-high latency of disks currently implies that prefetchers would have to predict
-the very distant future (e.g. seconds ahead of execution); however, with
-non-volatile memory-based swap space, this idea may be more practical.
+%Interestingly, many of non-volatile memory technologies are making their ways
+%into storage drives. One potential use of fast storage devices is for fast
+%swapping space. In such a system, the overhead of swapping may become a
+%bottleneck.
+%
+%Prefetching pages from swap space can offer a way to mitigate the overhead of
+%memory overcommitment, possibly making large virtual machines a viable
+%mechanism for studying large memory systems. When there is significant memory
+%pressure, even pages which are likely to be accessed soon are swapped out to
+%disk. They are faulted back into memory when accessed, resulting in significant
+%performance cost.  Charm++ uses a programming model where computations can be
+%scheduled by the language runtime. A designated thread can prefetch pages
+%required by a computation, averting page faults \cite{charmpp}. Rather than
+%implement page prefetching in a language runtime, one might implement a
+%prefetcher in the swapping subsystem, making it general purpose. A large body
+%of work already exists on hardware prefetching for processor caches, on which a
+%swap prefetcher might draw for inspiration \cite{prefetching}. However, this
+%approach can only work if page access patterns are predictable. Moreover, the
+%high latency of disks currently implies that prefetchers would have to predict
+%the very distant future (e.g. seconds ahead of execution); however, with
+%non-volatile memory-based swap space, this idea may be more practical.
 
 Gupta et al. built an emulator for high speed networks using a technique called
 time dilation, which slows down the OS clock to make it appear that external
@@ -725,8 +725,7 @@ quickly for performance reasons, but also to avoid wearing out of persistent
 memory due to frequent writes to this data structure. Patches proposed to the
 Linux kernel have proposed getting rid of the \texttt{struct page} altogether, but the
 complexity associated with such radical changes have hindered their acceptance
-by the community. Other works such as RadixVM \cite{radixvm} have also
-approached scalability with respect to the number of cores in the system.
+by the community.
 
 
 \section{Conclusion}
