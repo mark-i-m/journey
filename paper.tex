@@ -210,6 +210,7 @@ timestamp before and after each memory management operation in the workload and
 take the difference to get latency.
 
 % TODO: should we mention slab allocator?
+% (MM) I don't thinks so...
 To measure memory usage, we use the procfs's reporting on current memory usage.
 Where appropriate, we record the number of active
 \texttt{vm\_area\_struct}s in the system. Measuring kernel memory usage and
@@ -318,7 +319,7 @@ previous set of experiments (continuous and random).
 
 In all these experiments, the system is given 32GB of swap space total. We
 repeat each experiment with hugepages enabled and disabled to see the impact of
-the transparent hugepage system. The processor usage of kswapd and khugepaged is
+the transparent hugepage system. The processor usage of kswapd is
 recorded for each experiment and reported in the next section.
 
 %A SQL query goes into a bar, walks up to two tables and asks, ``Can I join you?".
@@ -479,8 +480,7 @@ the size of the swap file.
 ~\\ \textbf{Insights} 
 
 Transparent huge pages can consume a large fraction of memory and lead to early
-onset of memory pressure when the workload accesses many pages that are
-separated in its address space. The overhead of swapping greatly exceeds the
+onset of memory pressure for workloads with random access pattners. The overhead of swapping greatly exceeds the
 performance benefits provided by huge pages. As a result, the workload
 performance can fall drastically in such cases. It might be advisable to
 disable transparent huge pages for such applications. The kernel can also be
@@ -521,8 +521,7 @@ prevent early onset of memory pressure.
 \end{figure}
 
 This experiment is designed to measure the impact of swapping on memory
-operation latency. Figure \ref{fig:swap_time_cont} and Figure
-\ref{fig:swap_time_rand} show the results.
+operation latency.
 
 The overall behavior is as expected. In the \texttt{rand} benchmark, as before, all
 memory is exhausted quickly, and the benchmark induces swapping soon after the
@@ -551,6 +550,24 @@ seeks when paging out. Figure \ref{fig:swap_time_cdf} shows that with a larger
 swap file, the \texttt{cont} benchmark has a significantly higher number of
 high-latency accesses as compared with the smaller swap file.
 
+The latency of our disk leads us to expect that swapping out pages should take
+roughly 4ms. However, we see that in both benchmarks, there are operations that
+take dozens or hundreds of milliseconds. We used the \texttt{ftrace} kernel
+profiling mechanism in Linux to find out what causes some operations to be
+extremely slow.
+
+Surprisingly, the majority of this latency comes from kswapd itself. kswapd goes
+through phases of moving pages to the inactive list and reclaiming pages from
+the inactive list. This repeated until the amount of free memory increases
+beyond a threshold. kswapd does not do any particularly expensive operations
+beyond disk I/O. Rather, it executes a bunch of cheaper operations (e.g.
+checking if a page was referenced or freeing a page) millions of times in deeply
+nested loops. Meanwhile, the workload continues to use up any memory reclaimed
+by kswapd. Whenever kswapd is invoked by the page fault handler, it blocks the
+faulting process until enough pages are reclaimed.  Moreover, in some cases,
+during the \texttt{cont} workload kswapd chooses pages to reclaim much faster
+than they can be written to disk.
+
 ~\\ \textbf{Insights} 
 
 While large swap files allow greater amount of memory overcommitment, they can
@@ -564,23 +581,72 @@ locations.
 % Mark was telling Suhas a TCP joke the other day. He had to keep repeating it slower
 % and slower until Suhas got it.
 
-Also, looking at tail latencies is important because they can
-have a large impact on overall run time. As our results show, even very uncommon
-high-latency operations may have a significant impact on performance.
+Also, looking at tail latencies is important because they can have a large
+impact on overall run time. As our results show, even very uncommon high-latency
+operations may have a significant impact on performance.
+
+Our results also show that in some cases, kswapd induces more overhead to choose
+a good page to reclaim than would be accrued by choosing the wrong page to
+reclaim. Most of this overhead seems to be due to the poor asymptotic complexity
+of PFRA. Moreover, the swapping subsystem should be aware of disk bandwidth and
+latency, since they fundamentally limits how much memory can be reclaimed per
+unit time.
+
+Systems with larger memory may conceivably support more memory overcommitment,
+so improving the performance of swapping may be highly relavent moving forward.
+Additionally, if a system has orders of magnitude more pages, kswapd may spend
+significantly more time scanning the active and inactive lists.
 
 %I would tell you a UDP joke, but you might not get it. Well, even if you got it, you
 % wouldn't acknowledge it.
 
-\subsection{kswapd and khugepaged (TODO: markm)}
+\subsection{kswapd}
 
-TODO: in progress... should be ready for final product...
+Figure (TODO) shows the total number of jiffies spent running kswapd as the
+number of operations performed increases. Notice that one jiffy corresponds to
+10ms of runtime.
+
+First, we find that number of jiffies is a very imperfect measure of CPU runtime
+for kernel threads because it often misses executions of PFRA in the context of
+page faulting processes. Due to time constraints, we were not able to rerun our
+experiments using a better metric. However, these results do complement our
+findings from the previous set of experiments by showing the amount of time
+kswapd runs in its own context.
+
+kswapd does not take up a significant percentage of foreground runtime compared
+with the applcation. The behavior of kswapd depends heavily on the workload and
+on whether transparent hugepages are enabled. Not surprisingly, workloads that
+do not exhibit memory pressure do not incur kswapd overhead, as shown by the
+\texttt{rand} benchmark with hugepages off.
+
+As expected, the \texttt{rand} benchmark with hugepages on incurs the highest
+total overhead since it begins swapping very early. For this benchmark we
+observe an overhead of roughly 0.0002 jiffies per page memory touched after
+swapping begins. Also, kswapd runs for longer periods of time with longer
+intervals of sleep in between. This is most likely because the benchmark has
+some probability of retouching a page, so free memory is used more slowly, but
+kswapd also has to do more work to find pages that are inactive.
+
+In contrast, the \texttt{cont} benchmark with hugepages disabled uses
+computational time at roughly 0.0572 jiffies per page of memory touched.
+kswapd runs more frequently and for shorter periods of time because new pages
+are touched very quickly, requiring faster reclamation, but because all pages
+are only touched once, kswapd has to do very little work to choose pages to
+reclaim.
+
+Notice also that the \texttt{cont} benchmark with hugepages enabled spends
+surprisingly little time in kswapd. We suspect that kswapd runs once and choose
+a large number of pages to swap out. Subsequently, both the workload and kswapd
+wait for I/O. This seems consistent with our previous results, in which some
+operations take on the order of seconds to complete, but we have not yet
+verified it.
 
 ~\\ \textbf{Insights} 
 
-TODO
-
-
-% TODO: we need to discuss implications for large memory in the insights sections more
+The swapping system in Linux has complicated interactions with workloads and
+transparent hugepages. It is not obvious how to optimize a workload for better
+swapping behavior. Moreover, we see that under memory pressure, kswapd tends to
+run more often during page faults than in its own context.
 
 \section{Related Work}
 
