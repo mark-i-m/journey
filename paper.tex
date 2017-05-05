@@ -33,17 +33,15 @@ workloads we tested.
 
 \section{Introduction}
 
-Recent advances in memory technologies are making it possible for machines with
-large amounts of memory to become commonplace.
-These technology advances can
-enable systems with terabytes of memory in the not very distant future. For
-example, non-volatile memory technologies, which have denser physical
-structures than traditional DRAM are making such large memories available and
-more accessible \cite{xpoint}.
+Recent advances in memory technologies can enable systems with terabytes of
+memory to become commonplace in the not very distant future. For example,
+non-volatile memory technologies, which have denser physical structures than
+traditional DRAM are making large memories available and more accessible
+\cite{xpoint}.
 
-Much research is currently being done to study how non-volatile and large
+Much research is currently being done on how non-volatile and large
 memory systems would change system design. HP has been working on a system
-which it calls ``The Machine'', in which hundreds of cores have access to a
+called ``The Machine'', in which hundreds of cores have access to a
 multi-petabyte shared memory pool \cite{hp_machine}. Intel and
 Micron have announced their 3D Xpoint non-volatile memory technology, making
 dense, fast, persistent memory comercially available \cite{xpoint}.
@@ -61,13 +59,12 @@ towards building such a tool is to identify bottlenecks in managing large
 memories that make a tool difficult to develop. 
 
 In particular, we look at the case of a single process using a large amount of
-memory in a current Linux system. We run experiments to identify the scalability
-of the Linux memory management system across multiple dimensions. First, we
-measure the overhead of \texttt{vm\_area\_struct}, a common bookkeeping data
-structure in the Linux kernel. Then, we measure the memory and processing
-overheads of swapping. From these data, we extrapolate to systems running with
-more memory; many of the behaviors we identify would be aggravated by having or
-using more memory.
+memory in a current Linux system. We run experiments to identify the
+scalability of the Linux memory management system across multiple dimensions.
+First, we measure the overhead of \texttt{vm\_area\_struct}, a common
+bookkeeping data structure in the Linux kernel. Then, we measure the memory and
+processing overheads of swapping.  Many of the behaviors we identify would be
+aggravated by having or using more memory.
 
 While these experiments are not comprehensive, we believe they can offer
 insights that are useful both for building a research tool and for building
