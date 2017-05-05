@@ -98,19 +98,19 @@ and the processor traps to a page fault handler, which allocates memory and
 sets up a page table entry for a valid access. This is called demand paging.
 
 For demand paging to work efficiently, the correct \texttt{vm\_area\_struct}
-needs to be efficient to find. Linux caches the most recently used region and
+needs to be found quickly. Linux caches the most recently used region and
 organizes all regions into a red-black tree for fast lookup.  Moreover,
 adjacent regions with similar permissions and properties are merged in an
 effort to keep bookkeeping costs low.
 
-In our first set of experiments, we measure the memory overhead and latency of
-the Linux Memory Management system's use of \texttt{vm\_area\_struct}, which
-represents a region of a process's virtual address space. All the physical
-pages in the system are managed using the \texttt{struct page} descriptors in
-the kernel.  We do not measure the overhead of \texttt{struct page} because it
-is known that there is one struct for each physical page. We do not measure the
-overhead of page tables because this can be calculated from the size of the
-virtual memory space used by the process.  
+%In our first set of experiments, we measure the memory overhead and latency of
+%the Linux Memory Management system's use of \texttt{vm\_area\_struct}, which
+%represents a region of a process's virtual address space. All the physical
+%pages in the system are managed using the \texttt{struct page} descriptors in
+%the kernel.  We do not measure the overhead of \texttt{struct page} because it
+%is known that there is one struct for each physical page. We do not measure the
+%overhead of page tables because this can be calculated from the size of the
+%virtual memory space used by the process.  
 
 When a program makes a memory
 management system call such as \texttt{mmap}, \texttt{mremap}, \texttt{munmap},
@@ -190,7 +190,7 @@ Storage & 500GB HDD, 7200RPM \\
 \end{figure}
 
 The specifications of the machine we used to run our experiments are listed in
-Figure \ref{fig:specs}. We disabled Intel SpeedStep and TurboBoost and ensure
+Figure \ref{fig:specs}. We disabled Intel SpeedStep and TurboBoost and set the scaling governor to ensure
 that the processor frequency stays constant. All experiments are pinned to the
 same core on our machine. 
 
@@ -199,8 +199,7 @@ allocation pattern. These benchmarks are designed to stress the memory
 management system in different ways, rather than simulate real workloads. 
 Each run is executed in isolation, without any additional processes
 running beyond services that start when the system is booted and a single ssh
-session. We are careful to avoid opening extra ssh sessions, running screen or
-tmux, or executing extra commands while a benchmark is running since these may
+session. We are careful to avoid running any additional processes, which could 
 impact memory usage and, thus, our results.
 
 We measured latency using the \texttt{rdtsc} instruction provided by x86\_64
@@ -325,14 +324,22 @@ recorded for each experiment and reported in the next section.
 
 \subsection{\texttt{vm\_area\_struct} Experiments}
 
+\subsubsection{Memory}
+
 \begin{figure}[t]
-    \includegraphics[width=\columnwidth]{figures/mmap_latency}
-    \caption{Latency of memory operations. A running average with window of
-    width 5000 operations is used to reduce jitter.}
-    \label{fig:mmap_latency}
+    \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
+    \caption{$\Delta_i$ adjusted with \texttt{control} for benchmarks. Note that
+    graphs of \texttt{frag} and \texttt{stride} overlap. Also, \texttt{cont} and
+    \texttt{control} overlap.}
+    \label{fig:mmap_mem_usage}
 \end{figure}
 
-\subsubsection{Memory}
+\begin{figure}[t]
+    \includegraphics[width=\columnwidth]{figures/vm_area_struct_count}
+    \caption{Number of \texttt{vm\_area\_struct}s for benchmarks.}
+    \label{fig:vm_area_struct_count}
+\end{figure}
+
 Figure \ref{fig:mmap_mem_usage} shows the growth in memory usage of the system
 for the workloads described in section \ref{ss_vm_area_struct}. 
 
@@ -366,7 +373,7 @@ which shows the growth \texttt{vm\_area\_struct} counts for each workload.
 
 The memory overhead of \texttt{vm\_area\_struct}s increases linearly with the
 number of mapped regions when these regions are separated by unused memory
-addresses. When a workload maps a large number of regions, this overhead can be
+addresses. In the worst case, where each memory region is only one page long, \texttt{vm\_area\_struct} would represent a 5\% memory overhead per page. When a workload maps a large number of regions, this overhead can be
 on the order of hundreds of megabytes to gigabytes for large memory systems.  To
 reduce this overhead, it is crucial that regions with similar access permissions
 are placed adjacently in the address space so that they can be identified by a
@@ -374,6 +381,14 @@ single structure. It is important for large applications such as object-oriented
 databases that map a large number of regions to be aware of these overheads and mitigate them \cite{utlk}.
 
 \subsubsection{Time}
+
+\begin{figure}[t]
+    \includegraphics[width=\columnwidth]{figures/mmap_latency}
+    \caption{Latency of memory operations. A running average with window of
+    width 5000 operations is used to reduce jitter.}
+    \label{fig:mmap_latency}
+\end{figure}
+
 
 Figure \ref{fig:mmap_latency} shows the time taken
 per \texttt{mmap} operation as it varies with the total amount of memory allocated
@@ -429,20 +444,6 @@ memory is allocated next to an already allocated region. This latency is the
 worst in the \texttt{frag} microbenchmark i.e., when an already mapped region
 is to be expanded.  We recommend that applications that manage their own memory
 and expand memory regions should avoid this pattern.
-
-\begin{figure}[t]
-    \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
-    \caption{$\Delta_i$ adjusted with \texttt{control} for benchmarks. Note that
-    graphs of \texttt{frag} and \texttt{stride} overlap. Also, \texttt{cont} and
-    \texttt{control} overlap.}
-    \label{fig:mmap_mem_usage}
-\end{figure}
-
-\begin{figure}[t]
-    \includegraphics[width=\columnwidth]{figures/vm_area_struct_count}
-    \caption{Number of \texttt{vm\_area\_struct}s for benchmarks.}
-    \label{fig:vm_area_struct_count}
-\end{figure}
 
 
 \subsection{Swapping Experiments}
@@ -515,6 +516,15 @@ prevent early onset of memory pressure.
     \includegraphics[width=\columnwidth]{figures/swap_time_cdf}
     \caption{CDF of amount of time spent on operations with a given
     latency.\label{fig:swap_time_cdf}}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \begin{tabular}{c||c|c}
+        & \% of ops & Time spent \\ \hline \hline
+        Latency $\le$ 50ms & 99.97\% & 7.39s \\
+        Latency $>$ 50ms & 0.03\% & 18.9s \\
+    \end{tabular}
 \end{figure}
 
 This experiment is designed to measure the impact of swapping on memory
