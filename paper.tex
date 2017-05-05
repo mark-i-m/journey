@@ -245,22 +245,22 @@ $i$ memory management operations.
 The workloads we measure are
 
 \begin{itemize} \item \textit{Control}. This workload is only run for the memory
-overhead experiments. It simply prints the $\Delta_i$ for each $i$. It's graph
+overhead experiments. It simply prints the $\Delta_i$ for each $i$ while performing nops. It's graph
 is a straight line with positive slope. This memory usage results from the
 buffer containing stdout, where our readings are being printed. All of our
 experiments have the same stdout overhead, so this benchmark serves a baseline
 for comparison.
 
-\item \textit{Continuous} (\texttt{cont} for short). This workload allocates $2^{20}$
+\item \textit{Continuous} (\texttt{cont}). This workload allocates $2^{20}$
 adjacent 16KB blocks.
 
-\item \textit{Strided}. This workload allocates $2^{20}$ untouching 16KB regions
+\item \textit{Strided} (\texttt{stride}). This workload allocates $2^{20}$ untouching 16KB regions
 in order of increasing memory address.
 
-\item \textit{Random}. This workload randomly allocates the pages in a
+\item \textit{Random} (\texttt{rand}). This workload randomly allocates the pages in a
 $2^{20}$ page region.
 
-\item \textit{Fragmented} (\texttt{frag} for short). This workload first allocates
+\item \textit{Fragmented} (\texttt{frag}). This workload first allocates
     $2^{21}$ contiguous 4KB blocks. Then, it resizes every other block to 16KB.
         The resizing operation, rather than the initial allocation, is measured.
         By resizing every other block, rather than every block, the number of
@@ -291,7 +291,7 @@ recorded. The RSS is the
 amount of physical memory Linux has allocated to the process. The
 values of RSS are stored in an mlocked array and written to a file after the
 benchmark completes. This prevents the writing of the results from interacting
-with paging in the kernel page cache. These RSS values are graphed in our
+with paging in the kernel page cache during the experiment. These RSS values are graphed in our
 results section.
 
 Moreover, we measure the latency of each memory store operation to see the
@@ -304,7 +304,7 @@ itself, along with the impact on latency.
 \subsection{kswapd}
 
 These experiments are designed to measure the processing overhead of kswapd when
-the system is under high memory pressure.
+the system is under memory pressure.
 
 As in the previous set of experiments, a single process allocates 18GB of virtual memory space and writes one byte of
 each 4KB page in the region. The same two access patterns are tested as in the
