@@ -4,7 +4,7 @@
 \usepackage{caption}
 \usepackage{graphicx}
 
-\title{Journey: A Study of Scalabilty of Memory Management in Linux}
+\title{Journey: A Study of Scalability of Memory Management in Linux}
 \author{Mark Mansi, Suhas Pai, Hasnain Ali Pirzada\\\texttt{\{markm, spai, hp\}@cs.wisc.edu}}
 \date{}
 
@@ -740,7 +740,8 @@ process code and stack segments. However, the common use of custom data
 structures makes generating heap contents on the fly
 difficult. Moreover, on Linux, the kernel data structures for 1TB
 of memory may also exceed the size of physical memory on current systems
-\cite{simics}.
+\cite{simics}. As our results show, in some cases, the overheads of
+\texttt{vm\_area\_struct} alone could use significant amounts of memory.
 
 A virtualized environment can be used to provide a guest system with more memory
 than is physically available to the host. A study of the limits of the KVM
@@ -751,7 +752,8 @@ physical memory or host swap space \cite{ibmkvm}.  This means that when the
 virtual machine uses the whole amount of memory allocated to it, the host can
 swap pages to disk, resulting in poor performance, which can cause inaccurate
 performance measurements and make large
-benchmarks impractical.
+benchmarks impractical. Our findings indicate several areas of improvement that
+are needed before such an approach could be practical.
 
 %Interestingly, many of non-volatile memory technologies are making their ways
 %into storage drives. One potential use of fast storage devices is for fast
@@ -810,8 +812,11 @@ We also quantify the degradation in performance due to the use of large swap
 files. We propose that large swap files should be allocated with disk locality
 in mind to avoid performance degradation.   
 
-While priliminary, we believe that our study is a first step towards building tools 
-to study large memory systems in a principled and informed manner. 
+While priliminary, we believe that our study is a first step towards building
+tools to study large memory systems in a principled and informed manner. As our
+results show, approaches similar to David \cite{david, exalt} will need to deal
+with high kernel data structure overheads. Meanwhile, virtualization-based tools
+would need to deal with the poor scalability of swapping.
  
 
 \section{Acknowledgements}
