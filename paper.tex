@@ -514,6 +514,7 @@ prevent early onset of memory pressure.
 
 \begin{figure}[t]
     \centering
+    \caption {Tail latency of memory accesses}
     \begin{tabular}{c||c|c}
         & \% of ops & Time spent \\ \hline \hline
         Latency $\le$ 50ms & 99.97\% & 7.39s \\
@@ -560,14 +561,13 @@ profiling mechanism in Linux to find out what causes some operations to be
 extremely slow.
 
 Surprisingly, the majority of this latency comes from kswapd itself. kswapd goes
-through phases of moving pages to the inactive list and reclaiming pages from
-the inactive list. This repeats until the amount of free memory increases
+through phases of maintaining LRU lists and reclaiming pages from
+them. This repeats until the amount of free memory increases
 beyond a threshold. kswapd does not do any particularly expensive operations
 beyond disk I/O. Rather, it executes a bunch of cheaper operations (e.g.
 checking if a page was referenced or freeing a page) millions of times in deeply
 nested loops. Meanwhile, the workload continues to use up any memory reclaimed
-by kswapd. Whenever kswapd is invoked by the page fault handler, it blocks the
-faulting process until enough pages are reclaimed.  Moreover, in some cases,
+by kswapd. Moreover, in some cases,
 during the \texttt{cont} workload kswapd chooses pages to reclaim much faster
 than they can be written to disk.
 
@@ -575,12 +575,7 @@ than they can be written to disk.
 
 While large swap files allow greater amount of memory overcommitment, they can
 also reduce the degree of disk locality. Thus, large swap files should be
-created with disk locality in mind. Some Linux distributions, such as
-Ubuntu, have switched to using swap files rather than swap partitions by default
-\cite{swap_ubuntu}. Our results suggest that for some workloads this may have a
-negative impact on performance if the swap file ends up in non-continuous disk
-locations.
-
+created with disk locality in mind. 
 % Mark was telling Suhas a TCP joke the other day. He had to keep repeating it slower
 % and slower until Suhas got it.
 
@@ -588,17 +583,14 @@ Also, looking at tail latencies is important because they can have a large
 impact on overall run time. As our results show, even very uncommon high-latency
 operations may have a significant impact on performance.
 
-Our results also show that in some cases, kswapd induces more overhead to choose
-a good page to reclaim than would be accrued by choosing the wrong page to
-reclaim. Most of this overhead seems to be due to the poor asymptotic complexity
-of PFRA. Moreover, the swapping subsystem should be aware of disk bandwidth and
-latency, since they fundamentally limits how much memory can be reclaimed per
-unit time.
+Our results also show that in some cases, kswapd induces more overhead choosing 
+a good page to reclaim than would occur by reclaiming the wrong page. Most of this 
+overhead seems to be due to the repitition fo cheap operations millions of times. 
 
 Systems with larger memory may conceivably support more memory overcommitment,
-so improving the performance of swapping may be highly relavent moving forward.
-Additionally, if a system has orders of magnitude more pages, kswapd may spend
-significantly more time scanning the active and inactive lists.
+so improving the performance of swapping may be highly relevant moving forward.
+Additionally, in systems with orders of magnitude of more pages, kswapd may spend
+significantly more time maintaining LRU lists.
 
 %I would tell you a UDP joke, but you might not get it. Well, even if you got it, you
 % wouldn't acknowledge it.
