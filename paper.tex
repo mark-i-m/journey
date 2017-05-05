@@ -85,8 +85,7 @@ necessary to understanding the experiments.
 \subsection{Virtual Memory Areas}
 
 A process may use the \texttt{mmap} system call to request that the kernel
-allocate part of its virtual address space. Accesses to memory addresses
-outside of allocated regions result in a segmentation fault.
+allocate part of its virtual address space.
 The Linux kernel keeps track of which portions of a process's address space
 have been allocated using the \texttt{vm\_area\_struct} data structure. Because
 processes may map a number of regions, including shared objects, stack, heap,
@@ -122,10 +121,10 @@ structs.
 
 \subsection{Swapping}
 
-Under memory pressure, the kernel may choose to write some pages of memory to
-disk and then free those pages for use. Memory mapped files are written back to
-their backing files, but anonymous memory is written to portion of the disk
-called swap space. We focus on anonymous memory in our experiments.
+Under memory pressure, the kernel may free some pages for use by writing some
+pages to disk. Memory mapped files are written back to their backing files,
+but anonymous memory is written to portion of the disk called swap space. We
+focus on anonymous memory in our experiments.
 
 Before swapping a page out to disk, the kernel must reserve a slot for the page
 in the swap space, unmap it from the process's address space by removing its
