@@ -90,7 +90,7 @@ Linux's performance.
 When a process maps a region, a \texttt{vm\_area\_struct} is created, but no
 memory is allocated. When a process first touches a page, a page fault occurs
 and the processor traps to a page fault handler, which allocates memory and
-sets up a page table entry for a valid access. This is called \texttt{demand paging}.
+sets up a page table entry for a valid access. This is called \textit{demand paging}.
 
 For demand paging to work efficiently, the correct \texttt{vm\_area\_struct}
 needs to be found quickly. Linux caches the most recently used region and
@@ -129,7 +129,7 @@ to the page.
 On Linux, the system may have multiple swap spaces in the form of swap disk
 partitions or swap files on a filesystem. Both have a similar format on disk,
 in which the space is broken into a number of swap slots large enough for one
-4K page. For each of these swap spaces, the kernel keeps a swap map, which records
+4KB page. For each of these swap spaces, the kernel keeps a swap map, which records
 the usage of each swap slot so that it can find and allocate them quickly.
 
 Unmapping a page from a process's address space involves simply marking its page
@@ -157,7 +157,7 @@ candidate for reclamation.
 
 The PFRA runs primarily as a kernel thread called kswapd. kswapd runs at
 regular intervals and sleeps in between. Also, it is invoked if the system
-detects that memory has gone below a threshold such as during a page fault.
+detects that memory has gone below a threshold, such as during a page fault.
 kswapd will continue to run until enough pages are freed to bring the free
 memory pool above some threshold before going to sleep \cite{utlk}.  This may
 cause the faulting process to block for a while. One concern with systems that
@@ -245,7 +245,7 @@ $i$ memory management operations.
 The workloads we measure are
 
 \begin{itemize} \item \textit{Control}. This workload is only run for the memory
-overhead experiments. It simply prints the $\Delta_i$ for each $i$ while performing nops. It's graph
+overhead experiments. It simply prints the $\Delta_i$ for each $i$ while performing nops. Its graph
 is a straight line with positive slope. This memory usage results from the
 buffer containing stdout, where our readings are being printed. All of our
 experiments have the same stdout overhead, so this benchmark serves a baseline
@@ -325,7 +325,7 @@ recorded for each experiment and reported in the next section.
 
 \begin{figure}[t]
     \includegraphics[width=\columnwidth]{figures/mmap_mem_usage}
-    \caption{$\Delta_i$ as discussed in section \ref{ss_vm_area_struct}. Note that
+    \caption{$\Delta_i$ as defined in section \ref{ss_vm_area_struct}. Note that
     graphs of \texttt{frag} and \texttt{stride} overlap. Also, \texttt{cont} and
     \texttt{control} overlap.}
     \label{fig:mmap_mem_usage}
@@ -514,13 +514,12 @@ prevent early onset of memory pressure.
 
 \begin{figure}[t]
     \centering
-    \caption {Tail latency of memory accesses}
     \begin{tabular}{c||c|c}
         & \% of ops & Time spent \\ \hline \hline
         Latency $\le$ 50ms & 99.97\% & 7.39s \\
         Latency $>$ 50ms & 0.03\% & 18.9s \\
     \end{tabular}
-    \label{fig:latency_table}
+    \caption {Tail latency of memory accesses.\label{fig:latency_table}}
 \end{figure}
 
 This experiment is designed to measure the impact of swapping on memory
